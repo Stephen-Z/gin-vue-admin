@@ -70,6 +70,17 @@ func (nestinfoService *NestInfoService) GetNestInfo(id uint) (nestinfo NestInfo.
 	return
 }
 
+// GetNestInfoByIds 根据id获取NestInfo记录
+// Author [piexlmax](https://github.com/piexlmax)
+func (nestinfoService *NestInfoService) GetNestInfoByNestIds(nestIds []string) (nestinfoArr []NestInfo.NestInfo, err error) {
+	if len(nestIds) > 0 {
+		err = global.GVA_DB.Where("nestid in ?", nestIds).Find(&nestinfoArr).Error
+	} else {
+		err = global.GVA_DB.Find(&nestinfoArr).Error
+	}
+	return
+}
+
 // GetNestInfoInfoList 分页获取NestInfo记录
 // Author [piexlmax](https://github.com/piexlmax)
 func (nestinfoService *NestInfoService) GetNestInfoInfoList(info NestInfoReq.NestInfoSearch) (list []NestInfo.NestInfo, total int64, err error) {

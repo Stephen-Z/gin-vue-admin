@@ -157,6 +157,30 @@ func (nestinfoApi *NestInfoApi) FindNestInfo(c *gin.Context) {
 	}
 }
 
+// FindNestInfoByIds 用机巢id集查询NestInfo
+// @Tags NestInfo
+// @Summary 用机巢id集查询NestInfo列表
+// @Security ApiKeyAuth
+// @accept application/json
+// @Produce application/json
+// @Param data query NestInfo.NestInfo true "用机巢id集查询NestInfo列表"
+// @Success 200 {string} string "{"success":true,"data":{},"msg":"查询成功"}"
+// @Router /nestinfo/findNestInfo [get]
+func (nestinfoApi *NestInfoApi) FindNestInfoByNestIds(c *gin.Context) {
+	var IDS request.IdsReq
+	err := c.ShouldBindJSON(&IDS)
+	if err != nil {
+		response.FailWithMessage(err.Error(), c)
+		return
+	}
+	if renestinfoArr, err := nestinfoService.GetNestInfoByNestIds(IDS.NestIds); err != nil {
+		global.GVA_LOG.Error("查询失败!", zap.Error(err))
+		response.FailWithMessage("查询失败", c)
+	} else {
+		response.OkWithData(gin.H{"renestinfoList": renestinfoArr}, c)
+	}
+}
+
 // GetNestInfoList 分页获取NestInfo列表
 // @Tags NestInfo
 // @Summary 分页获取NestInfo列表

@@ -155,10 +155,10 @@
           <el-input-number v-model="formData.goHomeHeight"  style="width:100%" :precision="2" :clearable="true"  />
         </el-form-item>
          <el-form-item label="预估距离:" prop="execDistance">
-          <el-input-number v-model="formData.execDistance" style="width:100%" :precision="0" :clearable="true"></el-input-number>
+          <el-input-number v-model="formData.execDistance" style="width:100%" :precision="2" :clearable="true"></el-input-number>
        </el-form-item>
        <el-form-item label="预估执行时间:" prop="execTimeSpend">
-          <el-input-number v-model="formData.execTimeSpend" style="width:100%" :precision="0" :clearable="true"></el-input-number>
+          <el-input-number v-model="formData.execTimeSpend" style="width:100%" :precision="2" :clearable="true"></el-input-number>
        </el-form-item>
       </el-form>
       <template #footer>

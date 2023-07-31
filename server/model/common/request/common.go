@@ -26,6 +26,7 @@ type IdsReq struct {
 	Ids       []int    `json:"ids" form:"ids"`
 	RecordIds []int    `json:"record_ids"`
 	DataPaths []string `json:"data_paths"`
+	NestIds   []string `json:"nestIds"`
 }
 
 // GetAuthorityId Get role by id structure
