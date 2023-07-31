@@ -21,9 +21,9 @@ func (s *NestInfoRouter) InitNestInfoRouter(Router *gin.RouterGroup) {
 		nestinfoRouter.PUT("updateNestInfo", nestinfoApi.UpdateNestInfo)              // 更新NestInfo
 	}
 	{
-		nestinfoRouterWithoutRecord.GET("findNestInfo", nestinfoApi.FindNestInfo)                   // 根据ID获取NestInfo
-		nestinfoRouterWithoutRecord.GET("findNestInfoByNestIds", nestinfoApi.FindNestInfoByNestIds) // 用机巢id集查询NestInfo
-		nestinfoRouterWithoutRecord.GET("getNestInfoList", nestinfoApi.GetNestInfoList)             // 获取NestInfo列表
+		nestinfoRouterWithoutRecord.GET("findNestInfo", nestinfoApi.FindNestInfo)                    // 根据ID获取NestInfo
+		nestinfoRouterWithoutRecord.POST("findNestInfoByNestIds", nestinfoApi.FindNestInfoByNestIds) // 用机巢id集查询NestInfo
+		nestinfoRouterWithoutRecord.GET("getNestInfoList", nestinfoApi.GetNestInfoList)              // 获取NestInfo列表
 		nestinfoRouterWithoutRecord.GET("getAllUserList", nestinfoApi.GetAllUserList)
 		nestinfoRouterWithoutRecord.GET("getNestInfoInfoListWithUser", nestinfoApi.GetNestInfoInfoListWithUser)
 	}
