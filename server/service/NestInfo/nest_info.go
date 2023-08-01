@@ -72,11 +72,18 @@ func (nestinfoService *NestInfoService) GetNestInfo(id uint) (nestinfo NestInfo.
 
 // GetNestInfoByIds 根据id获取NestInfo记录
 // Author [piexlmax](https://github.com/piexlmax)
-func (nestinfoService *NestInfoService) GetNestInfoByNestIds(nestIds []string) (nestinfoArr []NestInfo.NestInfo, err error) {
+func (nestinfoService *NestInfoService) GetNestInfoByNestIds(c *gin.Context, nestIds []string) (nestinfoArr []NestInfo.NestInfo, err error) {
+	nestIDList, err := nestinfoService.GetNestIDListByUser(c)
+	if err != nil {
+		return
+	}
+	db := global.GVA_DB.Model(&NestInfo.NestInfo{})
+	db.Where("deleted_by = 0")
+	db.Where("nestid IN ? ", nestIDList)
 	if len(nestIds) > 0 {
-		err = global.GVA_DB.Where("nestid in ?", nestIds).Find(&nestinfoArr).Error
+		err = db.Where("nestid in ? ", nestIds).Find(&nestinfoArr).Error
 	} else {
-		err = global.GVA_DB.Find(&nestinfoArr).Error
+		err = db.Find(&nestinfoArr).Error
 	}
 	return
 }

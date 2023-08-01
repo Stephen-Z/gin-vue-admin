@@ -173,7 +173,7 @@ func (nestinfoApi *NestInfoApi) FindNestInfoByNestIds(c *gin.Context) {
 		response.FailWithMessage(err.Error(), c)
 		return
 	}
-	if renestinfoArr, err := nestinfoService.GetNestInfoByNestIds(IDS.NestIds); err != nil {
+	if renestinfoArr, err := nestinfoService.GetNestInfoByNestIds(c, IDS.NestIds); err != nil {
 		global.GVA_LOG.Error("查询失败!", zap.Error(err))
 		response.FailWithMessage("查询失败", c)
 	} else {
