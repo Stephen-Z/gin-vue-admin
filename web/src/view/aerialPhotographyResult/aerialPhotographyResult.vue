@@ -106,7 +106,7 @@
         />
         <el-table-column align="left" label="类型" prop="type" width="120">
           <template #default="scope">
-            {{ setTableType(scope.row.type) }}
+            {{ convertTableValue(scope.row.type, typeList) }}
           </template>
         </el-table-column>
         <el-table-column label="航拍文件" width="200">
@@ -122,7 +122,7 @@
         </el-table-column>
         <el-table-column align="left" label="状态" prop="status" width="120">
           <template #default="scope">
-            {{ setTableStatus(scope.row.status) }}
+            {{ convertTableValue(scope.row.status, statusList) }}
           </template>
         </el-table-column>
         <el-table-column
@@ -132,7 +132,7 @@
           width="120"
         >
           <template #default="scope">
-            {{ setTableLoadOrNot(scope.row.loadOrNot) }}
+            {{ convertTableValue(scope.row.loadOrNot, loadOrNotList) }}
           </template>
         </el-table-column>
         <el-table-column
@@ -222,7 +222,7 @@
             size="small"
           >
             <el-option
-              v-for="item in formDataTypeList"
+              v-for="item in typeList"
               :key="item.value"
               :label="item.label"
               :value="item.value"
@@ -254,7 +254,7 @@
             size="small"
           >
             <el-option
-              v-for="item in formDataLoadOrNotList"
+              v-for="item in loadOrNotList"
               :key="item.value"
               :label="item.label"
               :value="item.value"
@@ -318,7 +318,6 @@ import {
 } from "@/utils/format";
 import { ElMessage, ElMessageBox } from "element-plus";
 import { ref, reactive } from "vue";
-import { async } from "ezuikit-js";
 
 // 自动化生成的字典（可能为空）以及字段
 const formData = ref({
@@ -332,14 +331,23 @@ const formData = ref({
   loadOrNot: 0,
   nestIds: "",
 });
-const formDataTypeList = [
+const statusList = [
+  { value: 0, label: "上传中" },
+  { value: 1, label: "解压中" },
+  { value: 2, label: "已完成" },
+  { value: 3, label: "异常" },
+];
+const typeList = [
   { value: 0, label: "高清正射" },
   { value: 1, label: "三维模型" },
 ];
-const formDataLoadOrNotList = [
+const loadOrNotList = [
   { value: 0, label: "加载" },
   { value: 1, label: "不加载" },
 ];
+const convertTableValue = (value, list) => {
+  return list.find((val) => val.value === value).label;
+};
 // 验证规则
 const rule = reactive({
   aerialPhotographyFile: [
@@ -454,32 +462,6 @@ const findNestInfoByNestId = (ids) => {
         : "";
     })
     .join(",");
-};
-const setTableLoadOrNot = (loadOrNot) => {
-  if (loadOrNot) {
-    return "不加载";
-  } else {
-    return "加载";
-  }
-};
-const setTableType = (type) => {
-  if (type) {
-    return "三维模型";
-  } else {
-    return "高清正射";
-  }
-};
-const setTableStatus = (status) => {
-  switch (status) {
-    case 0:
-      return "上传中";
-    case 1:
-      return "解压中";
-    case 2:
-      return "已完成";
-    case 3:
-      return "异常";
-  }
 };
 // ============== 表格控制部分结束 ===============
 
