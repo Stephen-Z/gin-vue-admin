@@ -29,8 +29,8 @@ type NestAirline struct {
 	NestId                string   `json:"nestId" form:"nestId" gorm:"column:nest_id;comment:;"`
 	Remark                string   `json:"remark" form:"remark" gorm:"column:remark;comment:;"`
 	GoHomeHeight          *float64 `json:"goHomeHeight" form:"goHomeHeight" gorm:"column:go_home_height;comment:;"`    //返航高度
-	ExecDistance          *int     `json:"execDistance" form:"execDistance" gorm:"column:exec_distance;comment:;"`     //预估距离
-	ExecTimeSpend         *int     `json:"execTimeSpend" form:"execTimeSpend" gorm:"column:exec_time_spend;comment:;"` //预估执行时间
+	ExecDistance          *float64 `json:"execDistance" form:"execDistance" gorm:"column:exec_distance;comment:;"`     //预估距离
+	ExecTimeSpend         *float64 `json:"execTimeSpend" form:"execTimeSpend" gorm:"column:exec_time_spend;comment:;"` //预估执行时间
 	CreatedBy             uint     `gorm:"column:created_by;comment:创建者"`
 	UpdatedBy             uint     `gorm:"column:updated_by;comment:更新者"`
 	DeletedBy             uint     `gorm:"column:deleted_by;comment:删除者"`

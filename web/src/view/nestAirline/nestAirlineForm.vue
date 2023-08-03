@@ -66,10 +66,10 @@
           <el-input-number v-model="formData.goHomeHeight" :precision="2" :clearable="true"></el-input-number>
        </el-form-item>
        <el-form-item label="预估距离:" prop="execDistance">
-          <el-input-number v-model="formData.execDistance" :precision="0" :clearable="true"></el-input-number>
+          <el-input-number v-model="formData.execDistance" :precision="2" :clearable="true"></el-input-number>
        </el-form-item>
        <el-form-item label="预估执行时间:" prop="execTimeSpend">
-          <el-input-number v-model="formData.execTimeSpend" :precision="0" :clearable="true"></el-input-number>
+          <el-input-number v-model="formData.execTimeSpend" :precision="2" :clearable="true"></el-input-number>
        </el-form-item>
         <el-form-item>
           <el-button type="primary" @click="save">保存</el-button>
