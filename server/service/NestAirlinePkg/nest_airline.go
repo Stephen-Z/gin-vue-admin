@@ -115,7 +115,7 @@ func (NtAirlineService *NestAirlineService) GetNestAirlineInfoList(info NestAirl
 		return
 	}
 
-	err = db.Order("created_at desc").Limit(limit).Offset(offset).Find(&NtAirlines).Error
+	err = db.Order("updated_at desc").Limit(limit).Offset(offset).Find(&NtAirlines).Error
 	for _, airline := range NtAirlines {
 		db2 := global.GVA_DB.Model(&NestExecRecordPkg.NestExecRecord{})
 		var Count int

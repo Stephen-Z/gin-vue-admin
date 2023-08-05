@@ -92,15 +92,7 @@ func (ALPhotographyResultService *AerialPhotographyResultService) GetAerialPhoto
 	offset := info.PageSize * (info.Page - 1)
 	// 创建db
 	db := global.GVA_DB.Model(&AerialPhotographyResultPkg.AerialPhotographyResult{})
-	if len(nestIDList) > 0 {
-		for i, str := range nestIDList {
-			if i == 0 {
-				db.Where("nest_ids like ?", str)
-			} else {
-				db.Or("nest_ids like ?", str)
-			}
-		}
-	}
+
 	var ALPhotographyResults []AerialPhotographyResultPkg.AerialPhotographyResult
 	// 如果有条件搜索 下方会自动创建搜索语句
 	if info.StartCreatedAt != nil && info.EndCreatedAt != nil {
@@ -110,6 +102,20 @@ func (ALPhotographyResultService *AerialPhotographyResultService) GetAerialPhoto
 		if *info.Status >= 0 {
 			db = db.Where("status = ?", info.Status)
 		}
+	}
+	if len(nestIDList) > 0 {
+		sqlWhere := ""
+		for i, str := range nestIDList {
+			if i == 0 {
+				//db.Where("nest_ids like ?", str)
+				sqlWhere += "nest_ids like  '%" + str + "%'"
+			} else {
+				//db.Or("nest_ids like ?", str)
+				sqlWhere += "or nest_ids like  '%" + str + "%'"
+			}
+		}
+		sqlWhere = "(" + sqlWhere + ")"
+		db.Where(sqlWhere)
 	}
 	err = db.Count(&total).Error
 	if err != nil {
@@ -130,16 +136,21 @@ func (ALPhotographyResultService *AerialPhotographyResultService) QueryAerialPho
 	if err != nil {
 		return modelList, orthoList, err
 	}
-	querySql := "select id,name,photography_createtime,type,nest_ids, REPLACE(JSON_EXTRACT(aerial_photography_file, '$[0].url'),'\"','') aerial_photography_file, position, load_or_not from aerial_photography_result where 1 = 1 and status = 2 "
+	querySql := "select id,status,name,photography_createtime,type,nest_ids, REPLACE(JSON_EXTRACT(aerial_photography_file, '$[0].url'),'\"','') aerial_photography_file, position, load_or_not from aerial_photography_result where 1 = 1 and status = 2 "
 	db := global.GVA_DB.Model(&AerialPhotographyResultPkg.AerialPhotographyResult{})
 	if len(nestIDList) > 0 {
+		sqlWhere := ""
 		for i, str := range nestIDList {
 			if i == 0 {
-				querySql += " and nest_ids like '%" + str + "%'"
+				//db.Where("nest_ids like ?", str)
+				sqlWhere += "nest_ids like  '%" + str + "%'"
 			} else {
-				querySql += " or nest_ids like '%" + str + "%'"
+				//db.Or("nest_ids like ?", str)
+				sqlWhere += "or nest_ids like  '%" + str + "%'"
 			}
 		}
+		sqlWhere = "(" + sqlWhere + ")"
+		db.Where(sqlWhere)
 	}
 	querySql += " order by photography_createtime desc "
 	queryErr := db.Raw(querySql).Find(&dataList)
