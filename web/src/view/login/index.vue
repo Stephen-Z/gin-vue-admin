@@ -1,5 +1,5 @@
 <template>
-  <div class="login">
+  <div class="login" id="loginRef">
     <swiper
       class="login__swiper"
       :modules="[EffectFade, Autoplay]"
@@ -10,8 +10,6 @@
       :speed="1500"
       effect="fade"
       :slides-per-view="1"
-      @swiper="onSwiper"
-      @slideChange="onSlideChange"
     >
       <swiper-slide>
         <img
@@ -30,82 +28,88 @@
           style="width: 100%; height: 100%"
       /></swiper-slide>
     </swiper>
-    <img src="../../assets/login/logo.png" class="login__logo" />
-    <div class="login__layout"></div>
+    <div class="login__mask"></div>
     <div class="login__container">
-      <div class="login__container-left">
-        <div class="login__title">
-          <img
-            src="../../assets/login/znslogo.svg"
-            style="width: 100px; vertical-align: middle; margin-right: 5px"
-          />智农飞手
-        </div>
-        <el-form
-          class="login__form"
-          ref="loginForm"
-          :model="loginFormData"
-          :rules="rules"
-          :validate-on-rule-change="false"
-          @keyup.enter="submitForm"
-        >
-          <el-form-item prop="username">
-            <el-input
-              v-model="loginFormData.username"
-              size="large"
-              placeholder="请输入用户名"
-              suffix-icon="user"
-            />
-          </el-form-item>
-          <el-form-item prop="password">
-            <el-input
-              v-model="loginFormData.password"
-              show-password
-              size="large"
-              type="password"
-              placeholder="请输入密码"
-            />
-          </el-form-item>
-          <el-form-item v-if="loginFormData.openCaptcha" prop="captcha">
-            <div class="vPicBox">
+      <img
+        src="../../assets/login/logo.png"
+        class="login__logo"
+        :style="`transform: scale(${transformScale});`"
+      />
+      <div class="login__box" :style="`transform: scale(${transformScale});`">
+        <div class="login__box-left">
+          <div class="login__title">
+            <img
+              src="../../assets/login/znslogo.svg"
+              style="width: 100px; vertical-align: middle; margin-right: 5px"
+            />智农飞手
+          </div>
+          <el-form
+            class="login__form"
+            ref="loginForm"
+            :model="loginFormData"
+            :rules="rules"
+            :validate-on-rule-change="false"
+            @keyup.enter="submitForm"
+          >
+            <el-form-item prop="username">
               <el-input
-                v-model="loginFormData.captcha"
-                placeholder="请输入验证码"
+                v-model="loginFormData.username"
                 size="large"
-                style="flex: 1; padding-right: 20px"
+                placeholder="请输入用户名"
+                suffix-icon="user"
               />
-              <div class="vPic">
-                <img
-                  v-if="picPath"
-                  :src="picPath"
-                  alt="请输入验证码"
-                  @click="loginVerify()"
+            </el-form-item>
+            <el-form-item prop="password">
+              <el-input
+                v-model="loginFormData.password"
+                show-password
+                size="large"
+                type="password"
+                placeholder="请输入密码"
+              />
+            </el-form-item>
+            <el-form-item v-if="loginFormData.openCaptcha" prop="captcha">
+              <div class="vPicBox">
+                <el-input
+                  v-model="loginFormData.captcha"
+                  placeholder="请输入验证码"
+                  size="large"
+                  style="flex: 1; padding-right: 20px"
                 />
+                <div class="vPic">
+                  <img
+                    v-if="picPath"
+                    :src="picPath"
+                    alt="请输入验证码"
+                    @click="loginVerify()"
+                  />
+                </div>
               </div>
-            </div>
-          </el-form-item>
-          <el-form-item>
-            <!-- <el-button
+            </el-form-item>
+            <el-form-item>
+              <!-- <el-button
               type="primary"
               style="width: 46%"
               size="large"
               @click="checkInit"
             >前往初始化</el-button> -->
-            <el-button
-              type="primary"
-              size="large"
-              style="width: 100%"
-              @click="submitForm"
-              >登 录</el-button
-            >
-          </el-form-item>
-        </el-form>
+              <el-button
+                type="primary"
+                size="large"
+                style="width: 100%"
+                @click="submitForm"
+                >登 录</el-button
+              >
+            </el-form-item>
+          </el-form>
+        </div>
+        <img class="login__box-right" src="../../assets/login/login_left.svg" />
       </div>
-      <img
-        class="login__container-right"
-        src="../../assets/login/login_left.svg"
+      <BottomInfo
+        class="login__bottom-info"
+        :style="`transform: translateX(-50%) scale(${transformScale});`"
       />
     </div>
-    <BottomInfo class="login__bottom-info" />
   </div>
 </template>
 
@@ -124,16 +128,14 @@ import "swiper/css/autoplay";
 import { captcha } from "@/api/user";
 import { checkDB } from "@/api/initdb";
 import BottomInfo from "@/view/layout/bottomInfo/bottomInfo.vue";
-import { reactive, ref } from "vue";
+import { reactive, ref, onMounted, onUnmounted } from "vue";
 import { ElMessage } from "element-plus";
 import { useRouter } from "vue-router";
 import { useUserStore } from "@/pinia/modules/user";
 
-const onSwiper = (swiper) => {
-  console.log(swiper);
-};
-const onSlideChange = () => {
-  console.log("slide change");
+const transformScale = ref(1);
+const setTransformScale = () => {
+  transformScale.value = window.screen.height / 1080;
 };
 
 const router = useRouter();
@@ -228,6 +230,14 @@ const checkInit = async () => {
     }
   }
 };
+let resizeObserver = null;
+onMounted(() => {
+  resizeObserver = new window.ResizeObserver(setTransformScale);
+  resizeObserver.observe(document.getElementById("loginRef"));
+});
+onUnmounted(() => {
+  resizeObserver.unobserve(document.getElementById("loginRef"));
+});
 </script>
 
 <style lang="scss" scoped>
@@ -235,30 +245,40 @@ const checkInit = async () => {
   height: 100%;
   width: 100%;
   position: relative;
-  &__layout {
+  &__mask {
     left: 0;
     right: 0;
     bottom: 0;
     top: 0;
     background: linear-gradient(rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.3));
-    z-index: 1;
+    z-index: 2;
     position: absolute;
   }
   &__swiper {
     width: 100%;
     height: 100%;
+    position: absolute;
+    z-index: 1;
     .swiper-slide {
       width: 100%;
     }
   }
   &__logo {
     position: absolute;
-    z-index: 2;
     top: 0.625rem;
     left: 0.625rem;
     width: 120px;
+    transform: scale(1.5);
+    transform-origin: top left;
   }
   &__container {
+    width: 100%;
+    height: 100%;
+    left: 0;
+    position: relative;
+    z-index: 3;
+  }
+  &__box {
     border-radius: 1.875rem;
     padding: 3.125rem;
     box-sizing: border-box;
@@ -267,12 +287,12 @@ const checkInit = async () => {
     width: 60rem;
     bottom: 4rem;
     left: 3rem;
-    z-index: 2;
     display: flex;
     justify-content: space-between;
     background-color: rgba(255, 255, 255, 0.3);
+    transform-origin: bottom left;
   }
-  &__container-left {
+  &__box-left {
     width: 45%;
     padding: 0.625rem;
     box-sizing: border-box;
@@ -284,7 +304,7 @@ const checkInit = async () => {
     margin-top: 2.5rem;
     margin-bottom: 4rem;
   }
-  &__container-right {
+  &__box-right {
   }
   &__form {
     :deep(.el-form-item) {
@@ -295,9 +315,8 @@ const checkInit = async () => {
     position: absolute;
     bottom: 0;
     left: 50%;
-    transform: translateX(-50%);
     color: white;
-    z-index: 2;
+    transform-origin: center;
     :deep(a) {
       color: white;
     }
