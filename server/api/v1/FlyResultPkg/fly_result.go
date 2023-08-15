@@ -1,6 +1,8 @@
 package FlyResultPkg
 
 import (
+	"crypto/md5"
+	"fmt"
 	"github.com/flipped-aurora/gin-vue-admin/server/global"
 	"github.com/flipped-aurora/gin-vue-admin/server/model/FlyResultPkg"
 	FlyResultPkgReq "github.com/flipped-aurora/gin-vue-admin/server/model/FlyResultPkg/request"
@@ -11,12 +13,16 @@ import (
 	"github.com/flipped-aurora/gin-vue-admin/server/utils"
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
-	"io/ioutil"
 	"log"
 	"os"
 	"path"
 	"strings"
+	"time"
 )
+
+func init() {
+	go TimeToClearCompressFile()
+}
 
 type FlyResultApi struct {
 }
@@ -319,23 +325,66 @@ func (FlyRtApi *FlyResultApi) DataResultDownload(c *gin.Context) {
 	}
 	if len(Reqs.DataPaths) > 0 {
 		fileList := make([]string, 0, 0)
+		finalPath := ""
 		for _, rPath := range Reqs.DataPaths {
 			if rPath != "" && global.GVA_CONFIG.FileServer.FlyRecordPath != "" {
 				completePath := path.Join(global.GVA_CONFIG.FileServer.FlyRecordPath, rPath)
 				fileList = append(fileList, completePath)
+				finalPath += rPath
 			}
 		}
-		if zipErr := utils.ZipFiles("./result.zip", fileList, global.GVA_CONFIG.FileServer.FlyRecordPath, ""); err != nil {
-			log.Println(zipErr.Error())
+		encodeFileName := md5.Sum([]byte(finalPath))
+		zipFileName := fmt.Sprintf("%x.zip", encodeFileName)
+		//zipFileName := fmt.Sprintf("%s_%v-result.zip", uuid.NewString(), time.Now().Format("2006-01-02-15-04-05"))
+		_, exist := os.Stat(path.Join(global.GVA_CONFIG.FileServer.FlyRecordCompressDownload, zipFileName))
+		if exist == nil {
+			//已存在同文件的压缩包
+			response.OkWithData(gin.H{"filePath": path.Join(global.GVA_CONFIG.FileServer.FlyRecordCompressDownload, zipFileName)}, c)
 		} else {
-			fileBytes, readErr := ioutil.ReadFile("./result.zip")
-			if readErr != nil {
-				response.FailWithMessage("解压文件失败!", c)
+			//不存在
+			if zipErr := utils.ZipFiles(path.Join(global.GVA_CONFIG.FileServer.FlyRecordCompressDownload, zipFileName), fileList, global.GVA_CONFIG.FileServer.FlyRecordPath, ""); err != nil {
+				log.Println(zipErr.Error())
+				response.FailWithMessage("打包失败", c)
 			} else {
-				c.Header("Content-Disposition", "attachment; filename="+"result.zip") //添加此header触发http下载动作
-				c.Data(200, "application/octet-stream", fileBytes)
-				os.Remove("./result.zip")
+				//c.Header("Content-Type", "application/octet-stream")
+				//c.Header("Content-Disposition", "attachment; filename="+zipFileName) //添加此header触发http下载动作
+				//c.Header("Cache-Control", "no-cache")
+				//c.File("./" + zipFileName)
+				response.OkWithData(gin.H{"filePath": path.Join(global.GVA_CONFIG.FileServer.FlyRecordCompressDownload, zipFileName)}, c)
+			}
+		}
+	} else {
+		response.FailWithMessage("请勾选文件", c)
+	}
+}
+
+//每日凌晨定时清除压缩完的作业成果
+func TimeToClearCompressFile() {
+	t := time.NewTimer(SetTime(0, 1, 0))
+	defer t.Stop()
+	for {
+		select {
+		case <-t.C:
+			t.Reset(time.Hour * 24)
+			// 定时任务函数
+			log.Printf("凌晨删除打包的压缩文件: %v\n", time.Now())
+			//以下为定时执行的操作
+			err := os.RemoveAll(global.GVA_CONFIG.FileServer.FlyRecordCompressDownload)
+			if err != nil {
+				global.GVA_LOG.Error("删除作业成果压缩包失败!", zap.Error(err))
+			} else {
+				global.GVA_LOG.Info("删除作业成果压缩包成功!", zap.Error(err))
+				os.MkdirAll(global.GVA_CONFIG.FileServer.FlyRecordCompressDownload, os.ModePerm)
 			}
 		}
 	}
+}
+func SetTime(hour, min, second int) (d time.Duration) {
+	now := time.Now()
+	setTime := time.Date(now.Year(), now.Month(), now.Day(), hour, min, second, 0, now.Location())
+	d = setTime.Sub(now)
+	if d > 0 {
+		return
+	}
+	return d + time.Hour*24
 }
