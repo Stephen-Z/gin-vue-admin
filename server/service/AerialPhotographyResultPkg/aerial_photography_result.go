@@ -136,7 +136,7 @@ func (ALPhotographyResultService *AerialPhotographyResultService) QueryAerialPho
 	if err != nil {
 		return modelList, orthoList, err
 	}
-	querySql := "select id,status,name,photography_createtime,type,nest_ids, REPLACE(JSON_EXTRACT(aerial_photography_file, '$[0].url'),'\"','') aerial_photography_file, position, load_or_not from aerial_photography_result where 1 = 1 and status = 2 "
+	querySql := "select id,status,name,photography_createtime,type,nest_ids, REPLACE(JSON_EXTRACT(aerial_photography_file, '$[0].url'),'\"','') aerial_photography_file, position, load_or_not from aerial_photography_result where 1 = 1 and status = 2 and load_or_not = 0"
 	db := global.GVA_DB.Model(&AerialPhotographyResultPkg.AerialPhotographyResult{})
 	if len(nestIDList) > 0 {
 		sqlWhere := ""
@@ -167,7 +167,8 @@ func (ALPhotographyResultService *AerialPhotographyResultService) QueryAerialPho
 						parseErr := json.Unmarshal([]byte(item.Position), &posMap)
 						if parseErr == nil {
 							var info string
-							info = filepath.Join(url, strconv.Itoa(posMap["x"]), strconv.Itoa(posMap["y"]), strconv.Itoa(posMap["z"])+".png")
+							//info = filepath.Join(url, strconv.Itoa(posMap["x"]), strconv.Itoa(posMap["y"]), strconv.Itoa(posMap["z"])+".png")
+							info = filepath.Join(url, "{z}", "{x}", "{y}"+".png")
 							item.FileUrl = &info
 							item.AerialPhotographyFile = nil //此处赋空值为避免最后返回结果时解析第三方包json报错
 							orthoList = append(orthoList, item)

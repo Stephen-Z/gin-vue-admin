@@ -372,32 +372,36 @@ const elSearchFormRef = ref();
 
 const statusList = [
   {
-    value: 1,
+    value: 0,
     label: "计划",
   },
   {
-    value: 2,
+    value: 1,
     label: "执行准备",
   },
   {
-    value: 3,
+    value: 2,
     label: "执行中",
   },
   {
-    value: 4,
+    value: 3,
     label: "执行完毕",
   },
   {
-    value: 5,
+    value: 4,
     label: "执行失败",
   },
   {
-    value: 6,
+    value: 5,
     label: "数据下载中",
   },
   {
-    value: 7,
+    value: 6,
     label: "数据下载完毕",
+  },
+  {
+    value: 7,
+    label: "数据下载异常",
   },
 ];
 const convertTableValue = (value, list) => {
