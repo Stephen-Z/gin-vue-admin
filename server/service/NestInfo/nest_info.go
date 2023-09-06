@@ -146,19 +146,27 @@ func (nestinfoService *NestInfoService) GetNestIDListByUser(c *gin.Context) (lis
 	if err != nil {
 		return
 	}
-	nestRoleList, _, err := nestroleservice.GetNestRoleInfoList(nestroleSearch)
-	if err != nil {
-		return
-	}
 	var nestIDList []string
-	for _, item := range nestRoleList {
-		var nestIDListStr []string
-		json.Unmarshal([]byte(item.Nestid), &nestIDListStr)
-		// nestIDListStr := strings.Split(item.Nestid, ",")
-		for _, id := range nestIDListStr {
-			if !utils.StringArrContains(nestIDList, id) {
-				nestIDList = append(nestIDList, id)
+	if !utils.UintArrContains(nestroleSearch.AuthID, 888) {
+		nestRoleList, _, err := nestroleservice.GetNestRoleInfoList(nestroleSearch)
+		if err != nil {
+			return nil, err
+		}
+		for _, item := range nestRoleList {
+			var nestIDListStr []string
+			json.Unmarshal([]byte(item.Nestid), &nestIDListStr)
+			// nestIDListStr := strings.Split(item.Nestid, ",")
+			for _, id := range nestIDListStr {
+				if !utils.StringArrContains(nestIDList, id) {
+					nestIDList = append(nestIDList, id)
+				}
 			}
+		}
+	} else {
+		db := global.GVA_DB.Model(&NestInfo.NestInfo{})
+		err := db.Select("nestid").Find(&nestIDList).Error
+		if err != nil {
+			return nil, err
 		}
 	}
 	return nestIDList, nil
