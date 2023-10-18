@@ -247,27 +247,33 @@ const submitForm = () => {
   loginForm.value.validate(async (v) => {
     if (v) {
       const flag = await login();
-      findThemeByRoleId().then((res) => {
-        if (res.request) {
-          Object.assign(theme.value, res.data);
+      if (flag) {
+        findThemeByRoleId({
+          userRoles: userStore.userInfo.authorityId,
+        }).then((res) => {
+          console.log(res);
+          if (res.code !== 7) {
+            Object.assign(theme.value, res.data.retheme);
 
-          theme.value.loginViewLogo =
-            theme.value.loginViewLogo === ""
-              ? []
-              : JSON.parse(theme.value.loginViewLogo);
-          theme.value.systemLogo =
-            theme.value.systemLogo === ""
-              ? []
-              : JSON.parse(theme.value.systemLogo);
-          theme.value.backgroundPhoto =
-            theme.value.backgroundPhoto === ""
-              ? []
-              : JSON.parse(theme.value.backgroundPhoto);
-        } else {
-          Object.assign(theme.value, defaultThemes);
-        }
-        localStorage.setItem("theme", JSON.stringify(theme.value));
-      });
+            theme.value.loginViewLogo =
+              theme.value.loginViewLogo === ""
+                ? []
+                : JSON.parse(theme.value.loginViewLogo);
+            theme.value.systemLogo =
+              theme.value.systemLogo === ""
+                ? []
+                : JSON.parse(theme.value.systemLogo);
+            theme.value.backgroundPhoto =
+              theme.value.backgroundPhoto === ""
+                ? []
+                : JSON.parse(theme.value.backgroundPhoto);
+          } else {
+            Object.assign(theme.value, defaultThemes);
+          }
+          localStorage.setItem("theme", JSON.stringify(theme.value));
+        });
+      }
+
       if (!flag) {
         loginVerify();
       }

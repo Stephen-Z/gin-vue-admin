@@ -9,7 +9,7 @@ export const getThemeById = (data) => {
 }
 export const findThemeByRoleId = (data) => {
   return service({
-    url: '/base/getThemeById',
+    url: '/theme/findThemeByRoleId',
     method: 'get',
     params: data
   })
