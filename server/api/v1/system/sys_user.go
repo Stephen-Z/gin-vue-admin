@@ -86,9 +86,9 @@ func (b *BaseApi) GetThemeById(c *gin.Context) {
 		first := global.GVA_DB.Where("is_or_no_default_theme = 1").First(&theme)
 		if first.Error == nil {
 			c.JSON(http.StatusOK, gin.H{
-				"data":    theme,
-				"errcode": 0,
-				"errmsg":  "success",
+				"data": theme,
+				"code": 0,
+				"msg":  "success",
 			})
 			return
 		}
@@ -96,24 +96,24 @@ func (b *BaseApi) GetThemeById(c *gin.Context) {
 	err := global.GVA_DB.Where("id = ?", id).First(&theme).Error
 	if err != nil {
 		c.JSON(http.StatusExpectationFailed, gin.H{
-			"data":    "{}",
-			"errcode": -1,
-			"errmsg":  err.Error(),
+			"data": "{}",
+			"code": -1,
+			"msg":  err.Error(),
 		})
 		return
 	}
 	if theme.ID <= 0 {
 		c.JSON(http.StatusExpectationFailed, gin.H{
-			"data":    "未查询到角色信息",
-			"errcode": -2,
-			"errmsg":  err.Error(),
+			"data": "未查询到角色信息",
+			"code": -2,
+			"msg":  err.Error(),
 		})
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{
-		"data":    theme,
-		"errcode": 0,
-		"errmsg":  "success",
+		"data": theme,
+		"code": 0,
+		"msg":  "success",
 	})
 	return
 }
