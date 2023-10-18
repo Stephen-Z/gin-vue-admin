@@ -3,7 +3,7 @@
  */
 
 const config = {
-  appName: '智航巡飞平台',
+  appName: '智航巡飞',
   appLogo: 'https://www.gin-vue-admin.com/img/logo.png',
   showViteLogo: true
 }
