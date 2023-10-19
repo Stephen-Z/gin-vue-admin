@@ -79,6 +79,6 @@ func (themeService *ThemeService) GetThemeInfoList(info ThemeReq.ThemeSearch) (l
 // GetThemeByRoleId 根据角色id获取Theme记录
 // Author [piexlmax](https://github.com/piexlmax)
 func (themeService *ThemeService) GetThemeByRoleId(roleId string) (theme Theme.Theme, err error) {
-	err = global.GVA_DB.Where("user_roles = ?", roleId).Limit(1).First(&theme).Error
+	err = global.GVA_DB.Where("user_roles like ?", "%"+roleId+"%").Order("created_at desc").Limit(1).First(&theme).Error
 	return
 }
