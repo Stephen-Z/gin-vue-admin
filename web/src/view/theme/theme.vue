@@ -98,10 +98,10 @@
         />
         <el-table-column align="left" label="用户角色" width="120">
           <template #default="scope">
-            {{
-              authorityList.find((item) => item.value === scope.row.userRoles)
-                ?.label
-            }}
+            <span v-for="value in scope.row.userRoles.split(',')" :key="value">
+              {{ authorityList.find((item) => item.value === value)?.label }}
+              <br />
+            </span>
           </template>
         </el-table-column>
         <el-table-column
@@ -242,6 +242,7 @@
           <el-select
             v-model="formData.userRoles"
             class="m-2"
+            multiple
             placeholder="Select"
             size="large"
           >
@@ -327,7 +328,7 @@ getAuthorityTableData();
 // 自动化生成的字典（可能为空）以及字段
 const formData = ref({
   themeName: "",
-  userRoles: "",
+  userRoles: [],
   loginViewLogo: [],
   systemLogo: [],
   systemName: "",
@@ -531,6 +532,11 @@ const updateThemeFunc = async (row) => {
       formData.value.backgroundPhoto === ""
         ? []
         : JSON.parse(formData.value.backgroundPhoto);
+
+    formData.value.userRoles =
+      formData.value.userRoles === ""
+        ? []
+        : formData.value.userRoles.split(",");
   }
 };
 
@@ -563,7 +569,7 @@ const closeDialog = () => {
   dialogFormVisible.value = false;
   formData.value = {
     themeName: "",
-    userRoles: "",
+    userRoles: [],
     loginViewLogo: [],
     systemLogo: [],
     systemName: "",
@@ -592,6 +598,9 @@ const enterDialog = async () => {
       formDataPrame.backgroundPhoto.forEach((item) => {
         item.url = item.url.replaceAll("../api/", "");
       });
+    }
+    if (formDataPrame.userRoles.length !== 0) {
+      formDataPrame.userRoles = formDataPrame.userRoles.join(",");
     }
     formDataPrame.loginViewLogo = JSON.stringify(formDataPrame.loginViewLogo);
     formDataPrame.systemLogo = JSON.stringify(formDataPrame.systemLogo);
