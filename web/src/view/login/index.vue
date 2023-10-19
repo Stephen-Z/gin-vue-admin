@@ -1,5 +1,5 @@
 <template>
-  <div class="login" id="loginRef">
+  <div id="loginRef" class="login">
     <swiper
       class="login__swiper"
       :modules="[EffectFade, Autoplay]"
@@ -11,27 +11,14 @@
       effect="fade"
       :slides-per-view="1"
     >
-      <swiper-slide>
-        <img
-          src="../../assets/login/login_background1.png"
-          style="width: 100%; height: 100%"
-        />
+      <swiper-slide v-for="item in theme?.backgroundPhoto" :key="item.url">
+        <img :src="'../api/' + item.url" style="width: 100%; height: 100%" />
       </swiper-slide>
-      <swiper-slide>
-        <img
-          src="../../assets/login/login_background2.png"
-          style="width: 100%; height: 100%"
-      /></swiper-slide>
-      <swiper-slide>
-        <img
-          src="../../assets/login/login_background3.jpg"
-          style="width: 100%; height: 100%"
-      /></swiper-slide>
     </swiper>
-    <div class="login__mask"></div>
+    <div class="login__mask" />
     <div class="login__container">
       <img
-        src="../../assets/login/logo.png"
+        :src="'../api/' + theme?.systemLogo[0]?.url"
         class="login__logo"
         :style="`transform: scale(${transformScale});`"
       />
@@ -39,13 +26,19 @@
         <div class="login__box-left">
           <div class="login__title">
             <img
-              src="../../assets/login/znslogo.svg"
-              style="width: 100px; vertical-align: middle; margin-right: 5px"
-            />智农飞手
+              :src="'../api/' + theme?.loginViewLogo[0]?.url"
+              style="
+                width: 120px;
+                vertical-align: middle;
+                margin-right: 5px;
+                margin-bottom: 0.5rem;
+              "
+            />
+            <br />{{ theme?.systemName }}
           </div>
           <el-form
-            class="login__form"
             ref="loginForm"
+            class="login__form"
             :model="loginFormData"
             :rules="rules"
             :validate-on-rule-change="false"
@@ -125,13 +118,66 @@ import { Swiper, SwiperSlide } from "swiper/vue";
 import "swiper/css";
 import "swiper/css/effect-fade";
 import "swiper/css/autoplay";
-import { captcha } from "@/api/user";
+import { captcha, getThemeById, findThemeByRoleId } from "@/api/user";
 import { checkDB } from "@/api/initdb";
 import BottomInfo from "@/view/layout/bottomInfo/bottomInfo.vue";
-import { reactive, ref, onMounted, onUnmounted } from "vue";
+import { reactive, ref, onMounted, onBeforeUnmount } from "vue";
 import { ElMessage } from "element-plus";
-import { useRouter } from "vue-router";
+import { useRouter, useRoute } from "vue-router";
 import { useUserStore } from "@/pinia/modules/user";
+
+const defaultThemes = {
+  backgroundPhoto: [
+    {
+      name: "login_background1.png",
+      url: "uploads/file/3c5192e8d553bdf18741ab6f01beb669_20231016153502.png",
+      uid: 1697443136505,
+      status: "success",
+    },
+    {
+      name: "login_background2.png",
+      url: "uploads/file/5bc1da8e95ff528d72882f3db39a7d37_20231016153504.png",
+      uid: 1697443136506,
+      status: "success",
+    },
+    {
+      name: "login_background3.jpg",
+      url: "uploads/file/394c1a5822b3934109d2a078f7500a84_20231016153506.jpg",
+      uid: 1697443136507,
+      status: "success",
+    },
+  ],
+  systemLogo: [
+    {
+      name: "logo.png",
+      url: "uploads/file/96d6f2e7e1f705ab5e59c84a6dc009b2_20231016153500.png",
+      uid: 1697443136501,
+      status: "success",
+    },
+  ],
+  loginViewLogo: [
+    {
+      name: "index-removebg-preview.png",
+      url: "uploads/file/83baf2016971cfedc7f12efae74b3576_20231016155906.png",
+      uid: 1697443241479,
+      status: "success",
+    },
+  ],
+  systemName: "智农飞手",
+  ID: 7,
+  CreatedAt: "2023-10-16T15:35:10.774+08:00",
+  UpdatedAt: "2023-10-16T16:06:01.768+08:00",
+  themeName: "默认主题",
+  userRoles: "9528",
+  isOrNoDefaultTheme: true,
+};
+
+const theme = ref({
+  backgroundPhoto: [],
+  systemLogo: [],
+  loginViewLogo: [],
+  systemName: "",
+});
 
 const transformScale = ref(1);
 const setTransformScale = () => {
@@ -139,6 +185,7 @@ const setTransformScale = () => {
 };
 
 const router = useRouter();
+const route = useRoute();
 // 验证函数
 const checkUsername = (rule, value, callback) => {
   if (value.length < 5) {
@@ -200,6 +247,33 @@ const submitForm = () => {
   loginForm.value.validate(async (v) => {
     if (v) {
       const flag = await login();
+      if (flag) {
+        findThemeByRoleId({
+          userRoles: userStore.userInfo.authorityId,
+        }).then((res) => {
+          console.log(res);
+          if (res.code !== 7) {
+            Object.assign(theme.value, res.data.retheme);
+
+            theme.value.loginViewLogo =
+              theme.value.loginViewLogo === ""
+                ? []
+                : JSON.parse(theme.value.loginViewLogo);
+            theme.value.systemLogo =
+              theme.value.systemLogo === ""
+                ? []
+                : JSON.parse(theme.value.systemLogo);
+            theme.value.backgroundPhoto =
+              theme.value.backgroundPhoto === ""
+                ? []
+                : JSON.parse(theme.value.backgroundPhoto);
+          } else {
+            Object.assign(theme.value, defaultThemes);
+          }
+          localStorage.setItem("theme", JSON.stringify(theme.value));
+        });
+      }
+
       if (!flag) {
         loginVerify();
       }
@@ -231,11 +305,45 @@ const checkInit = async () => {
   }
 };
 let resizeObserver = null;
+const setTheme = (id = "") => {
+  getThemeById({ id: id }).then((res) => {
+    if (!res.request) {
+      Object.assign(theme.value, res.data);
+
+      theme.value.loginViewLogo =
+        theme.value.loginViewLogo === ""
+          ? []
+          : JSON.parse(theme.value.loginViewLogo);
+      theme.value.systemLogo =
+        theme.value.systemLogo === "" ? [] : JSON.parse(theme.value.systemLogo);
+      theme.value.backgroundPhoto =
+        theme.value.backgroundPhoto === ""
+          ? []
+          : JSON.parse(theme.value.backgroundPhoto);
+    } else {
+      Object.assign(theme.value, defaultThemes);
+    }
+    localStorage.setItem("theme", JSON.stringify(theme.value));
+  });
+};
+const getTheme = () => {
+  if (route.query.id === undefined) {
+    const localStorageTheme = localStorage.getItem("theme");
+    if (localStorageTheme) {
+      theme.value = JSON.parse(localStorageTheme);
+    } else {
+      setTheme("");
+    }
+  } else {
+    setTheme(route.query.id);
+  }
+};
+getTheme();
 onMounted(() => {
   resizeObserver = new window.ResizeObserver(setTransformScale);
   resizeObserver.observe(document.getElementById("loginRef"));
 });
-onUnmounted(() => {
+onBeforeUnmount(() => {
   resizeObserver.unobserve(document.getElementById("loginRef"));
 });
 </script>
@@ -298,11 +406,11 @@ onUnmounted(() => {
     box-sizing: border-box;
   }
   &__title {
-    font-size: 3.125rem;
+    font-size: 2.8rem;
     color: rgba(255, 255, 255, 0.9);
     text-align: center;
-    margin-top: 2.5rem;
-    margin-bottom: 4rem;
+    margin-top: -1rem;
+    margin-bottom: 2rem;
   }
   &__box-right {
   }

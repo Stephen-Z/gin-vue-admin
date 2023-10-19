@@ -45,6 +45,7 @@ service.interceptors.request.use(
     return config
   },
   error => {
+    console.log('error', error)
     if (!error.config.donNotShowLoading) {
       closeLoading()
     }
@@ -60,6 +61,7 @@ service.interceptors.request.use(
 // http response 拦截器
 service.interceptors.response.use(
   response => {
+    console.log('error0', response)
     const userStore = useUserStore()
     if (!response.config.donNotShowLoading) {
       closeLoading()
@@ -80,13 +82,14 @@ service.interceptors.response.use(
       })
       if (response.data.data && response.data.data.reload) {
         userStore.token = ''
-        localStorage.clear()
+        window.localStorage.removeItem('token')
         router.push({ name: 'Login', replace: true })
       }
       return response.data.msg ? response.data : response
     }
   },
   error => {
+    console.log('error', error)
     if (!error.config.donNotShowLoading) {
       closeLoading()
     }
@@ -118,7 +121,7 @@ service.interceptors.response.use(
           .then(() => {
             const userStore = useUserStore()
             userStore.token = ''
-            localStorage.clear()
+            window.localStorage.removeItem('token')
             router.push({ name: 'Login', replace: true })
           })
         break

@@ -20,75 +20,75 @@
 </template>
 
 <script setup>
-import { ref, watch, onBeforeUnmount } from "vue";
-import { ElMessage } from "element-plus";
-import { useUserStore } from "@/pinia/modules/user";
+import { ref, watch, onBeforeUnmount } from 'vue'
+import { ElMessage } from 'element-plus'
+import { useUserStore } from '@/pinia/modules/user'
 
 const props = defineProps({
   modelValue: {
     type: Array,
     default: () => [],
   },
-});
-const uploadRef = ref();
-const path = ref(import.meta.env.VITE_BASE_API);
-const userStore = useUserStore();
-const fullscreenLoading = ref(false);
+})
+const uploadRef = ref()
+const path = ref(import.meta.env.VITE_BASE_API)
+const userStore = useUserStore()
+const fullscreenLoading = ref(false)
 
-const fileList = ref(props.modelValue);
+const fileList = ref(props.modelValue)
 
-const emits = defineEmits(["update:modelValue"]);
+const emits = defineEmits(['update:modelValue'])
 
 watch(fileList.value, (val) => {
-  console.log("watch", val);
-  emits("update:modelValue", val);
-});
+  console.log('watch', val)
+  emits('update:modelValue', val)
+})
 
 const uploadSuccess = (res) => {
-  const { data } = res;
+  const { data } = res
   if (data.file) {
     fileList.value.push({
       name: data.file.name,
       url: data.file.url,
-    });
-    fullscreenLoading.value = false;
+    })
+    fullscreenLoading.value = false
   }
-};
+}
 
 const uploadError = () => {
   ElMessage({
-    type: "error",
-    message: "上传失败",
-  });
-  fullscreenLoading.value = false;
-};
+    type: 'error',
+    message: '上传失败',
+  })
+  fullscreenLoading.value = false
+}
 
 const beforeUpload = (rawFile) => {
   const statue =
-    rawFile.name.split(".")[rawFile.name.split(".").length - 1] === "zip";
+    rawFile.name.split('.')[rawFile.name.split('.').length - 1] === 'zip'
   if (!statue) {
     ElMessage({
-      type: "error",
-      message: "上传失败,上传文件类型不为zip",
-    });
+      type: 'error',
+      message: '上传失败,上传文件类型不为zip',
+    })
   }
 
-  return statue;
-};
+  return statue
+}
 const uploadRemove = (uploadFile) => {
   const index = fileList.value.findIndex(
     (item) => item.url === uploadFile.response.data.file.url
-  );
-  fileList.value.splice(index, 1);
-};
+  )
+  fileList.value.splice(index, 1)
+}
 onBeforeUnmount(() => {
-  uploadRef.value.abort();
-});
+  uploadRef.value.abort()
+})
 </script>
 
 <script>
 export default {
-  name: "UploadCommon",
+  name: 'UploadCommon',
   methods: {},
-};
+}
 </script>

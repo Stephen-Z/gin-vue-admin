@@ -1,4 +1,19 @@
 import service from '@/utils/request'
+
+export const getThemeById = (data) => {
+  return service({
+    url: '/base/getThemeById',
+    method: 'get',
+    params: data
+  })
+}
+export const findThemeByRoleId = (data) => {
+  return service({
+    url: '/theme/findThemeByRoleId',
+    method: 'get',
+    params: data
+  })
+}
 // @Summary 用户登录
 // @Produce  application/json
 // @Param data body {username:"string",password:"string"}

@@ -1,6 +1,8 @@
 package system
 
 import (
+	"github.com/flipped-aurora/gin-vue-admin/server/model/Theme"
+	"net/http"
 	"strconv"
 	"time"
 
@@ -72,6 +74,48 @@ func (b *BaseApi) Login(c *gin.Context) {
 	// 验证码次数+1
 	global.BlackCache.Increment(key, 1)
 	response.FailWithMessage("验证码错误", c)
+}
+
+// GetTheme 根据id获取Theme记录
+// Author [piexlmax](https://github.com/piexlmax)
+func (b *BaseApi) GetThemeById(c *gin.Context) {
+	id := c.Query("id")
+	theme := new(Theme.Theme)
+	if id == "" {
+		//查询默认主题
+		first := global.GVA_DB.Where("is_or_no_default_theme = 1").First(&theme)
+		if first.Error == nil {
+			c.JSON(http.StatusOK, gin.H{
+				"data": theme,
+				"code": 0,
+				"msg":  "success",
+			})
+			return
+		}
+	}
+	err := global.GVA_DB.Where("id = ?", id).First(&theme).Error
+	if err != nil {
+		c.JSON(http.StatusExpectationFailed, gin.H{
+			"data": "{}",
+			"code": -1,
+			"msg":  err.Error(),
+		})
+		return
+	}
+	if theme.ID <= 0 {
+		c.JSON(http.StatusExpectationFailed, gin.H{
+			"data": "未查询到角色信息",
+			"code": -2,
+			"msg":  err.Error(),
+		})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{
+		"data": theme,
+		"code": 0,
+		"msg":  "success",
+	})
+	return
 }
 
 // TokenNext 登录以后签发jwt

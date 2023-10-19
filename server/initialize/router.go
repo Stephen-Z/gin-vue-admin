@@ -96,6 +96,10 @@ func Routers() *gin.Engine {
 		AerialPhotographyResultPkgRouter := router.RouterGroupApp.AerialPhotographyResultPkg
 		AerialPhotographyResultPkgRouter.InitAerialPhotographyResultRouter(PrivateGroup)
 	}
+	{
+		ThemeRouter := router.RouterGroupApp.Theme
+		ThemeRouter.InitThemeRouter(PrivateGroup)
+	}
 
 	global.GVA_LOG.Info("router register success")
 	return Router
