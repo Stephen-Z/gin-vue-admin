@@ -94,7 +94,7 @@ const formData = ref({
   nestid: "",
 });
 // 验证规则
-const rule = reactive({
+const rules = reactive({
   roleid: [
     {
       required: true,

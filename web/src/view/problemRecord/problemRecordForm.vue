@@ -83,6 +83,7 @@ const formData = ref({
             handMeasurce: '',
             lng: 0,
             lat: 0,
+            nestid: "",
         })
 // 验证规则
 const rule = reactive({
@@ -102,6 +103,8 @@ const init = async () => {
     } else {
       type.value = 'create'
     }
+
+    
 }
 
 init()

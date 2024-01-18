@@ -65,6 +65,7 @@
         <el-table-column align="left" label="当前状态" prop="currState" width="120" />
         <el-table-column align="left" label="经度" prop="lng" width="120" />
         <el-table-column align="left" label="纬度" prop="lat" width="120" />
+        <el-table-column align="left" label="机巢列表" prop="nestid" width="120" />
         <el-table-column align="left" label="操作">
             <template #default="scope">
             <el-button type="primary" link icon="edit" class="table-button" @click="updateProblemRecordFunc(scope.row)">变更</el-button>
@@ -85,7 +86,7 @@
         </div>
     </div>
     <el-dialog v-model="dialogFormVisible" :before-close="closeDialog" :title="type==='create'?'添加':'修改'" destroy-on-close>
-      <el-form :model="formData" label-position="right" ref="elFormRef" :rules="rule" label-width="80px">
+      <el-form :model="formData" label-position="right" ref="elFormRefRecord" :rules="rule" label-width="80px">
         <el-form-item label="序号:"  prop="orderNum" >
           <el-input v-model.number="formData.orderNum" :clearable="true" placeholder="请输入" />
         </el-form-item>
@@ -119,11 +120,35 @@
             </el-select>
         </el-form-item>
         <el-form-item label="经度:"  prop="lng" >
-          <el-input-number v-model="formData.lng"  style="width:100%" :precision="2" :clearable="true"  />
+          <el-input-number v-model="formData.lng"  style="width:100%" :precision="6" :clearable="true"  />
         </el-form-item>
         <el-form-item label="纬度:"  prop="lat" >
-          <el-input-number v-model="formData.lat"  style="width:100%" :precision="2" :clearable="true"  />
+          <el-input-number v-model="formData.lat"  style="width:100%" :precision="6" :clearable="true"  />
         </el-form-item>
+        <el-row>
+          <el-col :span="24" class="grid-cell">
+            <el-form-item label="机巢" prop="nestid">
+              <el-select
+                v-model="formData.nestid"
+                class="full-width-input"
+                clearable
+                filterable
+                multiple
+                remote
+                :remote-method="nestSearch"
+                :loading="nestLoading"
+              >
+              <el-option
+                v-for="(item, index) in nestidOptions"
+                :key="index"
+                :label="item.label"
+                :value="item.value"
+                :disabled="item.disabled"
+              ></el-option>
+            </el-select>
+          </el-form-item>
+        </el-col>
+      </el-row>
       </el-form>
       <template #footer>
         <div class="dialog-footer">
@@ -153,11 +178,12 @@ import {
 import { getUrl } from '@/utils/image'
 // 图片选择组件
 import SelectImage from '@/components/selectImage/selectImage.vue'
+import { getNestInfoList } from "@/api/nestInfo";
 
 // 全量引入格式化工具 请按需保留
 import { getDictFunc, formatDate, formatBoolean, filterDict } from '@/utils/format'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { ref, reactive } from 'vue'
+import { ref, reactive,nextTick } from 'vue'
 
 // 自动化生成的字典（可能为空）以及字段
 const formData = ref({
@@ -171,12 +197,49 @@ const formData = ref({
         handMeasurce: '',
         lng: 0,
         lat: 0,
+        nestid: '',
         })
 
 // 验证规则
 const rule = reactive({
-})
-
+  nestid: [
+    {
+      required: true,
+      message: "",
+      trigger: ["input", "blur"],
+    },
+    {
+      whitespace: true,
+      message: "不能只输入空格",
+      trigger: ["input", "blur"],
+    },
+  ],
+});
+const loading = ref(false);
+const nestLoading = ref(false);
+const nestidOptions = ref([]);
+const allNestidOptions = ref([]);
+const nestSearch = (query) => {
+  loading.value = true;
+  const tmpArr = allRoleidOptions.value.filter((item) => {
+    return item.label.indexOf(query) !== -1;
+  });
+  loading.value = false;
+};
+// 初始化方法
+const init = async () => {
+  getNestInfoList({ page: 1, pageSize: 9999 }).then((res) => {
+    const data = res.data;
+    for (const item of data.list) {
+      allNestidOptions.value.push({
+        value: `${item.nestid}`,
+        label: item.nestName,
+      });
+    }
+    nestidOptions.value = allNestidOptions.value;
+  });
+}
+init();
 const searchRule = reactive({
   createdAt: [
     { validator: (rule, value, callback) => {
@@ -193,7 +256,7 @@ const searchRule = reactive({
   ],
 })
 
-const elFormRef = ref()
+const elFormRefRecord = ref()
 const elSearchFormRef = ref()
 
 // =========== 表格控制部分 ===========
@@ -311,12 +374,20 @@ const type = ref('')
 const updateProblemRecordFunc = async(row) => {
     const res = await findProblemRecord({ ID: row.ID })
     type.value = 'update'
+    console.log(res)
     if (res.code === 0) {
         formData.value = res.data.repbRecord
+        try {
+          const nest = JSON.parse(row.nestid)
+          // row.data
+          formData.value.nestid = nest
+        } catch (error) {
+          
+        }
+        console.log(res.data.repbRecord, row)
         dialogFormVisible.value = true
     }
 }
-
 
 // 删除行
 const deleteProblemRecordFunc = async (row) => {
@@ -336,10 +407,13 @@ const deleteProblemRecordFunc = async (row) => {
 // 弹窗控制标记
 const dialogFormVisible = ref(false)
 
+
+
 // 打开弹窗
 const openDialog = () => {
     type.value = 'create'
     dialogFormVisible.value = true
+    
 }
 
 // 关闭弹窗
@@ -356,13 +430,20 @@ const closeDialog = () => {
         handMeasurce: '',
         lng: 0,
         lat: 0,
+        nestid: '',
         }
+        emit('cal')
 }
 // 弹窗确定
 const enterDialog = async () => {
-     elFormRef.value?.validate( async (valid) => {
-             if (!valid) return
+  // debugger;
+  console.log(elFormRefRecord.value)
+     elFormRefRecord.value?.validate( async (valid) => {
+      console.log("valid", valid)
+            //  if (!valid) return
               let res
+              formData.value.nestid = JSON.stringify(formData.value.nestid)
+              console.log('val', formData.value)
               switch (type.value) {
                 case 'create':
                   res = await createProblemRecord(formData.value)

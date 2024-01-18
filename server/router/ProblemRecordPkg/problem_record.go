@@ -21,7 +21,8 @@ func (s *ProblemRecordRouter) InitProblemRecordRouter(Router *gin.RouterGroup) {
 		pbRecordRouter.PUT("updateProblemRecord", pbRecordApi.UpdateProblemRecord)              // 更新ProblemRecord
 	}
 	{
-		pbRecordRouterWithoutRecord.GET("findProblemRecord", pbRecordApi.FindProblemRecord)       // 根据ID获取ProblemRecord
-		pbRecordRouterWithoutRecord.GET("getProblemRecordList", pbRecordApi.GetProblemRecordList) // 获取ProblemRecord列表
+		pbRecordRouterWithoutRecord.GET("findProblemRecord", pbRecordApi.FindProblemRecord)                   // 根据ID获取ProblemRecord
+		pbRecordRouterWithoutRecord.GET("getProblemRecordList", pbRecordApi.GetProblemRecordList)             // 获取ProblemRecord列表
+		pbRecordRouterWithoutRecord.GET("getProblemRecordListByUser", pbRecordApi.GetProblemRecordListByUser) // 根据用户权限分页获取ProblemRecord列表
 	}
 }

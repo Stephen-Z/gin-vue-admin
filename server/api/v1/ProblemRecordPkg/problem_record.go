@@ -15,6 +15,7 @@ type ProblemRecordApi struct {
 }
 
 var pbRecordService = service.ServiceGroupApp.ProblemRecordPkgServiceGroup.ProblemRecordService
+var nestinfoService = service.ServiceGroupApp.NestInfoServiceGroup.NestInfoService
 
 // CreateProblemRecord 创建ProblemRecord
 // @Tags ProblemRecord
@@ -163,4 +164,43 @@ func (pbRecordApi *ProblemRecordApi) GetProblemRecordList(c *gin.Context) {
 			PageSize: pageInfo.PageSize,
 		}, "获取成功", c)
 	}
+}
+
+// GetProblemRecordListByUser 根据用户权限分页获取ProblemRecord列表
+// @Tags ProblemRecord
+// @Summary 根据用户权限分页获取ProblemRecord列表
+// @Security ApiKeyAuth
+// @accept application/json
+// @Produce application/json
+// @Param data query ProblemRecordPkgReq.ProblemRecordSearch true "根据用户权限分页获取ProblemRecord列表"
+// @Success 200 {string} string "{"success":true,"data":{},"msg":"获取成功"}"
+// @Router /pbRecord/getProblemRecordList [get]
+func (pbRecordApi *ProblemRecordApi) GetProblemRecordListByUser(c *gin.Context) {
+	var pageInfo ProblemRecordPkgReq.ProblemRecordSearch
+	err := c.ShouldBindQuery(&pageInfo)
+	if err != nil {
+		response.FailWithMessage(err.Error(), c)
+		return
+	}
+	if nestList, _, err := nestinfoService.GetNestInfoInfoListWithUser(c); err != nil {
+		global.GVA_LOG.Error("获取失败!", zap.Error(err))
+		response.FailWithMessage("获取失败", c)
+	} else {
+		nestIdArr := make([]string, 0, 0)
+		for _, nestInfo := range nestList {
+			nestIdArr = append(nestIdArr, nestInfo.Nestid)
+		}
+		if recordList, total, err := pbRecordService.GetProblemRecordInfoListByUser(pageInfo, nestIdArr); err != nil {
+			global.GVA_LOG.Error("获取失败!", zap.Error(err))
+			response.FailWithMessage("获取失败", c)
+		} else {
+			response.OkWithDetailed(response.PageResult{
+				List:     recordList,
+				Total:    total,
+				Page:     pageInfo.Page,
+				PageSize: pageInfo.PageSize,
+			}, "获取成功", c)
+		}
+	}
+
 }

@@ -21,6 +21,7 @@ type ProblemRecord struct {
 	CurrState     string     `json:"currState" form:"currState" gorm:"column:curr_state;type:enum('已处理','未处理');comment:;"`
 	Lng           *float64   `json:"lng" form:"lng" gorm:"column:lng;comment:;"`
 	Lat           *float64   `json:"lat" form:"lat" gorm:"column:lat;comment:;"`
+	Nestid        string     `json:"nestid" form:"nestid"  gorm:"type:longtext;column:nestid;comment:;"`
 }
 
 // TableName ProblemRecord 表名

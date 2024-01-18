@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"gorm.io/gorm/logger"
 	"path/filepath"
 
 	"github.com/flipped-aurora/gin-vue-admin/server/config"
@@ -63,7 +64,7 @@ func (h MysqlInitHandler) EnsureDB(ctx context.Context, conf *request.InitDB) (n
 		DSN:                       c.Dsn(), // DSN data source name
 		DefaultStringSize:         191,     // string 类型字段的默认长度
 		SkipInitializeWithVersion: true,    // 根据版本自动配置
-	}), &gorm.Config{DisableForeignKeyConstraintWhenMigrating: true}); err != nil {
+	}), &gorm.Config{DisableForeignKeyConstraintWhenMigrating: true, Logger: logger.Default.LogMode(logger.Info)}); err != nil {
 		return ctx, err
 	}
 	global.GVA_CONFIG.AutoCode.Root, _ = filepath.Abs("..")

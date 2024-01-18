@@ -126,7 +126,7 @@ func (ALPhotographyResultService *AerialPhotographyResultService) GetAerialPhoto
 	return ALPhotographyResults, total, err
 }
 
-//QueryAerialPhotographyResult 查询并处理航摄成果数据
+// QueryAerialPhotographyResult 查询并处理航摄成果数据
 func (ALPhotographyResultService *AerialPhotographyResultService) QueryAerialPhotographyResult(c *gin.Context) ([]AerialPhotographyResultPkg.AerialPhotographyResult, []AerialPhotographyResultPkg.AerialPhotographyResult, error) {
 	var dataList []AerialPhotographyResultPkg.AerialPhotographyResult
 	var modelList []AerialPhotographyResultPkg.AerialPhotographyResult
@@ -136,7 +136,7 @@ func (ALPhotographyResultService *AerialPhotographyResultService) QueryAerialPho
 	if err != nil {
 		return modelList, orthoList, err
 	}
-	querySql := "select id,status,name,photography_createtime,type,nest_ids, REPLACE(JSON_EXTRACT(aerial_photography_file, '$[0].url'),'\"','') aerial_photography_file, position, load_or_not from aerial_photography_result where 1 = 1 and status = 2 and load_or_not = 0"
+	querySql := "select id,status,name,photography_createtime,type,nest_ids, REPLACE(JSON_EXTRACT(aerial_photography_file, '$[0].url'),'\"','') aerial_photography_file, position, load_or_not from aerial_photography_result where 1 = 1 and status = 2 and load_or_not = 0 and deleted_by = 0 "
 	db := global.GVA_DB.Model(&AerialPhotographyResultPkg.AerialPhotographyResult{})
 	if len(nestIDList) > 0 {
 		sqlWhere := ""
@@ -247,7 +247,7 @@ func AutoCompressAerialPhotographyFile() {
 	dataHandlerTicker.Stop()
 }
 
-//解压航摄成果压缩包并更新坐标
+// 解压航摄成果压缩包并更新坐标
 func AerialPhotographyFileUnzip(zipFile string, destDir string, alRes AerialPhotographyResultPkg.AerialPhotographyResult, flag bool) ([]string, error) {
 	zipReader, err := zip.OpenReader(zipFile)
 	var paths []string
