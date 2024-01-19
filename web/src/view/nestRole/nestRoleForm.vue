@@ -74,48 +74,45 @@ export default {
 </script>
 
 <script setup>
-import { createNestRole, updateNestRole, findNestRole } from "@/api/nestRole";
+import { createNestRole, updateNestRole } from "@/api/nestRole";
 import { getAuthorityList } from "@/api/authority";
 import { getNestInfoList } from "@/api/nestInfo";
 
 // 自动获取字典
-import { getDictFunc } from "@/utils/format";
-import { useRoute, useRouter } from "vue-router";
 import { ElMessage } from "element-plus";
-import { ref, reactive } from "vue";
-const route = useRoute();
-const router = useRouter();
+import { ref, reactive, toRefs } from "vue";
+const props = defineProps({
+  data: {
+    type: Object,
+    default: () => ({
+      roleid: "",
+      nestid: [],
+    }),
+  },
+});
+const { data } = toRefs(props);
 
-const emit = defineEmits(['cal'])
+const emit = defineEmits(["cal"]);
 
 const type = ref("");
 const formData = ref({
   roleid: "",
   nestid: "",
 });
+
 // 验证规则
 const rules = reactive({
   roleid: [
     {
       required: true,
-      message: "",
-      trigger: ["input", "blur"],
-    },
-    {
-      whitespace: true,
-      message: "不能只输入空格",
+      message: "角色不能为空",
       trigger: ["input", "blur"],
     },
   ],
   nestid: [
     {
       required: true,
-      message: "",
-      trigger: ["input", "blur"],
-    },
-    {
-      whitespace: true,
-      message: "不能只输入空格",
+      message: "机巢不能为空",
       trigger: ["input", "blur"],
     },
   ],
@@ -150,12 +147,10 @@ const nestSearch = (query) => {
 // 初始化方法
 const init = async () => {
   // 建议通过url传参获取目标数据ID 调用 find方法进行查询数据操作 从而决定本页面是create还是update 以下为id作为url参数示例
-  if (route.query.id) {
-    const res = await findNestRole({ ID: route.query.id });
-    if (res.code === 0) {
-      formData.value = res.data.renestrole;
-      type.value = "update";
-    }
+  console.log(data.value);
+  if (data.value.roleid !== "") {
+    formData.value = JSON.parse(JSON.stringify(data.value));
+    type.value = "update";
   } else {
     type.value = "create";
   }
@@ -199,8 +194,8 @@ const save = async () => {
       return;
     }
     let res;
-    formData.value.nestid = JSON.stringify(formData.value.nestid)
-    console.log('val', formData.value)
+    formData.value.nestid = JSON.stringify(formData.value.nestid);
+    console.log("val", formData.value);
     switch (type.value) {
       case "create":
         res = await createNestRole(formData.value);
@@ -218,14 +213,14 @@ const save = async () => {
         message: "创建/更改成功",
       });
     }
-    emit('cal')
+    emit("cal");
   });
 };
 
 // 返回按钮
 const back = () => {
   // router.go(-1);
-  emit('cal')
+  emit("cal");
 };
 </script>
 

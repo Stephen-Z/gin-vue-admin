@@ -146,8 +146,11 @@
       :title="type === 'create' ? '添加' : '修改'"
       destroy-on-close
     >
-      <nest-role-form @cal="dialogComplete" />
- 
+      <nest-role-form
+        v-if="dialogFormVisible"
+        :data="formData"
+        @cal="dialogComplete"
+      />
     </el-dialog>
   </div>
 </template>
@@ -161,57 +164,22 @@ export default {
 
 <script setup>
 import {
-  createNestRole,
   deleteNestRole,
   deleteNestRoleByIds,
-  updateNestRole,
   findNestRole,
   getNestRoleList,
 } from "@/api/nestRole";
 
 // 全量引入格式化工具 请按需保留
-import {
-  getDictFunc,
-  formatDate,
-  formatBoolean,
-  filterDict,
-} from "@/utils/format";
+import { formatDate } from "@/utils/format";
 import { ElMessage, ElMessageBox } from "element-plus";
 import { ref, reactive } from "vue";
-import NestRoleForm from './nestRoleForm.vue';
+import NestRoleForm from "./nestRoleForm.vue";
 
 // 自动化生成的字典（可能为空）以及字段
 const formData = ref({
   roleid: "",
   nestid: "",
-});
-
-// 验证规则
-const rule = reactive({
-  roleid: [
-    {
-      required: true,
-      message: "",
-      trigger: ["input", "blur"],
-    },
-    {
-      whitespace: true,
-      message: "不能只输入空格",
-      trigger: ["input", "blur"],
-    },
-  ],
-  nestid: [
-    {
-      required: true,
-      message: "",
-      trigger: ["input", "blur"],
-    },
-    {
-      whitespace: true,
-      message: "不能只输入空格",
-      trigger: ["input", "blur"],
-    },
-  ],
 });
 
 const searchRule = reactive({
@@ -243,7 +211,6 @@ const searchRule = reactive({
   ],
 });
 
-const elFormRef = ref();
 const elSearchFormRef = ref();
 
 // =========== 表格控制部分 ===========
@@ -363,7 +330,10 @@ const updateNestRoleFunc = async (row) => {
   const res = await findNestRole({ ID: row.ID });
   type.value = "update";
   if (res.code === 0) {
-    formData.value = res.data.renestrole;
+    // formData.value = res.data.renestrole;
+    formData.value.roleid = res.data.renestrole.roleid;
+    formData.value.nestid = JSON.parse(res.data.renestrole.nestid);
+    console.log(formData.value);
     dialogFormVisible.value = true;
   }
 };
@@ -394,49 +364,17 @@ const openDialog = () => {
 
 // 关闭弹窗
 const closeDialog = () => {
-  console.log("Closing dialog")
+  console.log("Closing dialog");
   dialogFormVisible.value = false;
   formData.value = {
     roleid: "",
     nestid: "",
   };
 };
-const confirmDialog = async (fd) => {
-  console.log("fd", fd)
-  formData.value = fd
-  await enterDialog()
-}
+
 const dialogComplete = () => {
-  closeDialog()
+  closeDialog();
   getTableData();
-}
-// 弹窗确定
-const enterDialog = async () => {
-  console.log(123123, elFormRef.value)
-  elFormRef.value?.validate(async (valid) => {
-    console.log(valid)
-    if (!valid) return;
-    let res;
-    switch (type.value) {
-      case "create":
-        res = await createNestRole(formData.value);
-        break;
-      case "update":
-        res = await updateNestRole(formData.value);
-        break;
-      default:
-        res = await createNestRole(formData.value);
-        break;
-    }
-    if (res.code === 0) {
-      ElMessage({
-        type: "success",
-        message: "创建/更改成功",
-      });
-      closeDialog();
-      getTableData();
-    }
-  });
 };
 </script>
 
