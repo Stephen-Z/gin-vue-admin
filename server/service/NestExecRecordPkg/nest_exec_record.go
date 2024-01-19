@@ -94,6 +94,7 @@ func (NtERecordService *NestExecRecordService) GetNestExecRecordInfoList(info Ne
 			db = db.Order("execute_at desc")
 		}
 	}
+	db = db.Order("created_at desc")
 	err = db.Count(&total).Error
 	if err != nil {
 		return

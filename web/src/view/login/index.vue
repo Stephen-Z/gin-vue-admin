@@ -164,12 +164,6 @@ const defaultThemes = {
     },
   ],
   systemName: "智农飞手",
-  ID: 7,
-  CreatedAt: "2023-10-16T15:35:10.774+08:00",
-  UpdatedAt: "2023-10-16T16:06:01.768+08:00",
-  themeName: "默认主题",
-  userRoles: "9528",
-  isOrNoDefaultTheme: true,
 };
 
 const theme = ref({

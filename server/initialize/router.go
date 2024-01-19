@@ -100,6 +100,13 @@ func Routers() *gin.Engine {
 		ThemeRouter := router.RouterGroupApp.Theme
 		ThemeRouter.InitThemeRouter(PrivateGroup)
 	}
+	{
+
+	}
+	{
+		ProblemRecordPkgRouter := router.RouterGroupApp.ProblemRecordPkg
+		ProblemRecordPkgRouter.InitProblemRecordRouter(PrivateGroup)
+	}
 
 	global.GVA_LOG.Info("router register success")
 	return Router

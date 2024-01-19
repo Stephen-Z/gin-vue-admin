@@ -7,6 +7,7 @@ import (
 	"github.com/flipped-aurora/gin-vue-admin/server/service/NestExecRecordPkg"
 	"github.com/flipped-aurora/gin-vue-admin/server/service/NestInfo"
 	"github.com/flipped-aurora/gin-vue-admin/server/service/Nestrolepkg"
+	"github.com/flipped-aurora/gin-vue-admin/server/service/ProblemRecordPkg"
 	"github.com/flipped-aurora/gin-vue-admin/server/service/Theme"
 	"github.com/flipped-aurora/gin-vue-admin/server/service/UserTeemlinkPkg"
 	"github.com/flipped-aurora/gin-vue-admin/server/service/example"
@@ -24,6 +25,7 @@ type ServiceGroup struct {
 	UserTeemlinkPkgServiceGroup            UserTeemlinkPkg.ServiceGroup
 	AerialPhotographyResultPkgServiceGroup AerialPhotographyResultPkg.ServiceGroup
 	ThemeServiceGroup                      Theme.ServiceGroup
+	ProblemRecordPkgServiceGroup           ProblemRecordPkg.ServiceGroup
 }
 
 var ServiceGroupApp = new(ServiceGroup)
