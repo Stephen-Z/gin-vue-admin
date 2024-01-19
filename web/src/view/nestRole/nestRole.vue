@@ -330,10 +330,8 @@ const updateNestRoleFunc = async (row) => {
   const res = await findNestRole({ ID: row.ID });
   type.value = "update";
   if (res.code === 0) {
-    // formData.value = res.data.renestrole;
-    formData.value.roleid = res.data.renestrole.roleid;
-    formData.value.nestid = JSON.parse(res.data.renestrole.nestid);
-    console.log(formData.value);
+    formData.value = JSON.parse(JSON.stringify(res.data.renestrole));
+    formData.value.nestid = JSON.parse(formData.value.nestid);
     dialogFormVisible.value = true;
   }
 };
