@@ -56,6 +56,7 @@
         <el-table-column align="left" label="问题来源" prop="problemSource" width="120" />
         <el-table-column align="left" label="问题描述" prop="problemDesc" width="120" />
         <el-table-column align="left" label="负责人" prop="personCharge" width="120" />
+        <el-table-column align="left" label="作业记录Id" prop="execRecordId" width="120" />
           <el-table-column label="问题图片" width="200">
               <template #default="scope">
                 <el-image style="width: 100px; height: 100px" :src="getUrl(scope.row.problemImage)" fit="cover"/>
@@ -66,6 +67,10 @@
         <el-table-column align="left" label="经度" prop="lng" width="120" />
         <el-table-column align="left" label="纬度" prop="lat" width="120" />
         <el-table-column align="left" label="机巢列表" prop="nestid" width="120" />
+        <el-table-column align="left" label="光谱id" prop="multiSpectraId" width="120" />
+         <el-table-column align="left" label="光谱类型id" prop="multiTypeId" width="120" />
+        <el-table-column align="left" label="航摄成果id" prop="AerialPhotographyId" width="120" />
+        <el-table-column align="left" label="航摄成果地址" prop="aerialServerAddress" width="120" />
         <el-table-column align="left" label="操作">
             <template #default="scope">
             <el-button type="primary" link icon="edit" class="table-button" @click="updateProblemRecordFunc(scope.row)">变更</el-button>
@@ -90,6 +95,9 @@
         <el-form-item label="序号:"  prop="orderNum" >
           <el-input v-model.number="formData.orderNum" :clearable="true" placeholder="请输入" />
         </el-form-item>
+         <el-form-item label="作业记录Id:"  prop="problemName" >
+          <el-input v-model="formData.execRecordId" :clearable="true"  placeholder="请输入" />
+        </el-form-item>
         <el-form-item label="登记日期:"  prop="registerDate" >
           <el-date-picker v-model="formData.registerDate" type="date" style="width:100%" placeholder="选择日期" :clearable="true"  />
         </el-form-item>
@@ -108,8 +116,11 @@
         <el-form-item label="负责人:"  prop="personCharge" >
           <el-input v-model="formData.personCharge" :clearable="true"  placeholder="请输入" />
         </el-form-item>
+         <el-form-item label="光谱类型Id:"  prop="multiTypeId" >
+          <el-input v-model.number="formData.multiTypeId" :clearable="true"  placeholder="请输入" />
+        </el-form-item>
         <el-form-item label="问题图片:"  prop="problemImage" >
-            <SelectImage v-model="formData.problemImage" />
+            <SelectImage v-model="formData.problemImage" :is-multiple="true" />
         </el-form-item>
         <el-form-item label="处理措施:"  prop="handMeasurce" >
           <el-input v-model="formData.handMeasurce" :clearable="true"  placeholder="请输入" />
@@ -149,6 +160,55 @@
           </el-form-item>
         </el-col>
       </el-row>
+      <el-row>
+          <el-col :span="24" class="grid-cell">
+            <el-form-item label="航摄成果" prop="AerialPhotographyId">
+              <el-select
+                v-model.number="formData.AerialPhotographyId"
+                class="full-width-input"
+                clearable
+                filterable
+                remote
+                :remote-method="aerialPhotographySearch"
+                :loading="aerialPhotographyloading"
+              >
+              <el-option
+                v-for="(item, index) in allaerialPhotographyOptions"
+                :key="index"
+                :label="item.label"
+                :value="item.value"
+                :disabled="item.disabled"
+              ></el-option>
+            </el-select>
+          </el-form-item>
+        </el-col>
+      </el-row>
+      <el-row>
+          <el-col :span="24" class="grid-cell">
+            <el-form-item label="光谱" prop="multiSpectraId">
+              <el-select
+                v-mode="formData.multiSpectraId"
+                class="full-width-input"
+                clearable
+                filterable
+                remote
+                :remote-method="multiSpectraSearch"
+                :loading="multiSpectraloading"
+              >
+              <el-option
+                v-for="(item, index) in allMultiSpectraOptions"
+                :key="index"
+                :label="item.label"
+                :value="item.value"
+                :disabled="item.disabled"
+              ></el-option>
+            </el-select>
+          </el-form-item>
+        </el-col>
+      </el-row>
+      <el-form-item label="航摄成果地址:"  prop="aerialServerAddress" >
+          <el-input v-model="formData.aerialServerAddress" :clearable="true"  placeholder="请输入" />
+        </el-form-item>
       </el-form>
       <template #footer>
         <div class="dialog-footer">
@@ -179,6 +239,9 @@ import { getUrl } from '@/utils/image'
 // 图片选择组件
 import SelectImage from '@/components/selectImage/selectImage.vue'
 import { getNestInfoList } from "@/api/nestInfo";
+import { getAerialPhotographyResultList } from "@/api/aerialPhotographyResult";
+import { getMultiSpectraAnalysisList } from "@/api/multiSpectraAnalysis";
+
 
 // 全量引入格式化工具 请按需保留
 import { getDictFunc, formatDate, formatBoolean, filterDict } from '@/utils/format'
@@ -198,6 +261,11 @@ const formData = ref({
         lng: 0,
         lat: 0,
         nestid: '',
+        multiSpectraId: '',
+        AerialPhotographyId: 0,
+        aerialServerAddress: '',
+        execRecordId: '',
+        multiTypeId: 0,
         })
 
 // 验证规则
@@ -216,18 +284,29 @@ const rule = reactive({
   ],
 });
 const loading = ref(false);
+//机巢
 const nestLoading = ref(false);
 const nestidOptions = ref([]);
 const allNestidOptions = ref([]);
 const nestSearch = (query) => {
   loading.value = true;
-  const tmpArr = allRoleidOptions.value.filter((item) => {
+  const tmpArr = nestidOptions.value.filter((item) => {
     return item.label.indexOf(query) !== -1;
   });
   loading.value = false;
 };
+//航摄成果
+const aerialPhotographyloading = ref(false);
+const aerialPhotographyOptions = ref([]);
+const allaerialPhotographyOptions = ref([]);
+//光谱
+const multiSpectraloading = ref(false);
+const multiSpectraOptions = ref([]);
+const allMultiSpectraOptions = ref([]);
+
 // 初始化方法
 const init = async () => {
+  //获取所有机巢并初始化
   getNestInfoList({ page: 1, pageSize: 9999 }).then((res) => {
     const data = res.data;
     for (const item of data.list) {
@@ -237,6 +316,28 @@ const init = async () => {
       });
     }
     nestidOptions.value = allNestidOptions.value;
+  });
+  //获取所有航摄成果并初始化数据数组
+  getAerialPhotographyResultList({ page: 1, pageSize: 99999 }).then((res) => {
+    const data = res.data;
+    for (const item of data.list) {
+      allaerialPhotographyOptions.value.push({
+        value: `${item.ID}`,
+        label: item.name,
+      });
+    }
+    aerialPhotographyOptions.value = allaerialPhotographyOptions.value;
+  });
+  //获取所有光谱数据并初始化数据数组
+  getMultiSpectraAnalysisList({ page: 1, pageSize: 99999 }).then((res) => {
+    const data = res.data;
+    for (const item of data.list) {
+      allMultiSpectraOptions.value.push({
+        value: `${item.ID}`,
+        label: item.multiSpectraName,
+      });
+    }
+    multiSpectraOptions.value = allMultiSpectraOptions.value;
   });
 }
 init();

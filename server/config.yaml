@@ -92,6 +92,8 @@ jwt:
 local:
   path: uploads/file
   store-path: uploads/file
+  #航摄文件上传地址
+  aerial-photo-path: uploads/file/aeriaPhoto
 mssql:
   path: ""
   port: ""
@@ -212,3 +214,17 @@ zap:
   max-age: 0
   show-line: true
   log-in-console: true
+file-server:
+  #作业成果主路径
+  main-link: http://cimtech.cn:31112
+  #作业成果图片压缩文件名
+  thumbnails-img-link: thumbnails
+  #作业成果视频源文件名
+  origin-video-link: originvideo
+  #作业成果磁盘路径
+  fly-record-path: D:\test\flyrecords
+  #作业成果打包下载路径
+  fly-record-compress-download: uploads\file\flyRecordCompressDownload
+problem-record:
+  #问题记录文件上传地址
+  problem-record-file-address: uploads\file\problemRecord

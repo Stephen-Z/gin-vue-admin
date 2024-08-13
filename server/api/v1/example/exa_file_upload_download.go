@@ -8,6 +8,10 @@ import (
 	exampleRes "github.com/flipped-aurora/gin-vue-admin/server/model/example/response"
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
+	"os"
+	"path/filepath"
+	"strconv"
+	"time"
 )
 
 type FileUploadAndDownloadApi struct{}
@@ -31,6 +35,24 @@ func (b *FileUploadAndDownloadApi) UploadFile(c *gin.Context) {
 		return
 	}
 	file, err = fileUploadAndDownloadService.UploadFile(header, noSave) // 文件上传后拿到文件路径
+	if err != nil {
+		global.GVA_LOG.Error("修改数据库链接失败!", zap.Error(err))
+		response.FailWithMessage("修改数据库链接失败", c)
+		return
+	}
+	response.OkWithDetailed(exampleRes.ExaFileResponse{File: file}, "上传成功", c)
+}
+
+func (b *FileUploadAndDownloadApi) UploadFileAerialPhoto(c *gin.Context) {
+	var file example.ExaFileUploadAndDownload
+	noSave := c.DefaultQuery("noSave", "0")
+	_, header, err := c.Request.FormFile("file")
+	if err != nil {
+		global.GVA_LOG.Error("接收文件失败!", zap.Error(err))
+		response.FailWithMessage("接收文件失败", c)
+		return
+	}
+	file, err = fileUploadAndDownloadService.UploadFileAerialPhoto(header, noSave) // 文件上传后拿到文件路径
 	if err != nil {
 		global.GVA_LOG.Error("修改数据库链接失败!", zap.Error(err))
 		response.FailWithMessage("修改数据库链接失败", c)
@@ -107,4 +129,38 @@ func (b *FileUploadAndDownloadApi) GetFileList(c *gin.Context) {
 		Page:     pageInfo.Page,
 		PageSize: pageInfo.PageSize,
 	}, "获取成功", c)
+}
+
+//MultiUploadFile
+//author:toby
+//问题记录多文件上传
+func (b *FileUploadAndDownloadApi) ProblemRecordMultiUploadFile(c *gin.Context) {
+	nowTime := time.Now()
+	form, _ := c.MultipartForm()
+	files := form.File["files"]
+	yearStr := strconv.Itoa(nowTime.Year())
+	monthStr := nowTime.Format("01")
+	fileResArr := make([]example.ExaFileUploadAndDownload, 0, 0)
+	for _, file := range files {
+		fileName := strconv.Itoa(int(time.Now().Unix())) + "_" + file.Filename
+		fileFolder := filepath.Join(global.GVA_CONFIG.ProblemRecord.ProblemRecordFileAddress, yearStr+"-"+monthStr)
+		stat, _ := os.Stat(fileFolder)
+		if stat == nil {
+			os.MkdirAll(fileFolder, os.ModePerm)
+		}
+		err := c.SaveUploadedFile(file, filepath.Join(fileFolder, fileName))
+		if err != nil {
+			response.FailWithMessage("接收文件失败", c)
+			return
+		} else {
+			resFile := new(example.ExaFileUploadAndDownload)
+			resFile.Name = file.Filename
+			resFile.Url = filepath.Join(fileFolder, fileName)
+			resFile.Tag = filepath.Ext(resFile.Url)
+			resFile.CreatedAt = time.Now()
+			resFile.UpdatedAt = time.Now()
+			fileResArr = append(fileResArr, *resFile)
+		}
+	}
+	response.OkWithDetailed(fileResArr, "上传成功", c)
 }

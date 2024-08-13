@@ -153,7 +153,7 @@ func (pbRecordApi *ProblemRecordApi) GetProblemRecordList(c *gin.Context) {
 		response.FailWithMessage(err.Error(), c)
 		return
 	}
-	if list, total, err := pbRecordService.GetProblemRecordInfoList(pageInfo); err != nil {
+	if list, total, err := pbRecordService.GetProblemRecordInfoList(pageInfo, c); err != nil {
 		global.GVA_LOG.Error("获取失败!", zap.Error(err))
 		response.FailWithMessage("获取失败", c)
 	} else {

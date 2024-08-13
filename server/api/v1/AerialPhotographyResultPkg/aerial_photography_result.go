@@ -180,13 +180,14 @@ func (ALPhotographyResultApi *AerialPhotographyResultApi) GetAerialPhotographyRe
 // @Success 200 {string} string "{"success":true,"data":{},"msg":"获取成功"}"
 // @Router /ALPhotographyResult/queryAerialPhotographyResult [get]
 func (ALPhotographyResultApi *AerialPhotographyResultApi) QueryAerialPhotographyResult(c *gin.Context) {
-	if modelList, orthoList, err := ALPhotographyResultService.QueryAerialPhotographyResult(c); err != nil {
+	if modelList, orthoList, multiSpectraList, err := ALPhotographyResultService.QueryAerialPhotographyResult(c); err != nil {
 		global.GVA_LOG.Error("查询失败!", zap.Error(err))
 		response.FailWithMessage("查询失败", c)
 	} else {
 		returnObj := make(map[string]interface{})
 		returnObj["modelList"] = modelList
 		returnObj["orthoList"] = orthoList
+		returnObj["multiSpectraList"] = multiSpectraList
 		response.OkWithData(gin.H{"list": returnObj}, c)
 	}
 }

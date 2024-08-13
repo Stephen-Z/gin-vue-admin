@@ -3,11 +3,15 @@ package AerialPhotographyResultPkg
 import (
 	"archive/zip"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/flipped-aurora/gin-vue-admin/server/global"
 	"github.com/flipped-aurora/gin-vue-admin/server/model/AerialPhotographyResultPkg"
 	AerialPhotographyResultPkgReq "github.com/flipped-aurora/gin-vue-admin/server/model/AerialPhotographyResultPkg/request"
+	"github.com/flipped-aurora/gin-vue-admin/server/model/MultiSpectraType"
+	MultiSpectraTypeReq "github.com/flipped-aurora/gin-vue-admin/server/model/MultiSpectraType/request"
 	"github.com/flipped-aurora/gin-vue-admin/server/model/common/request"
+	MultiSpectraType2 "github.com/flipped-aurora/gin-vue-admin/server/service/MultiSpectraType"
 	"github.com/flipped-aurora/gin-vue-admin/server/service/NestInfo"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -95,6 +99,9 @@ func (ALPhotographyResultService *AerialPhotographyResultService) GetAerialPhoto
 
 	var ALPhotographyResults []AerialPhotographyResultPkg.AerialPhotographyResult
 	// 如果有条件搜索 下方会自动创建搜索语句
+	if info.ID > 0 {
+		db = db.Where(" id = ?", info.ID)
+	}
 	if info.StartCreatedAt != nil && info.EndCreatedAt != nil {
 		db = db.Where("created_at BETWEEN ? AND ?", info.StartCreatedAt, info.EndCreatedAt)
 	}
@@ -127,16 +134,17 @@ func (ALPhotographyResultService *AerialPhotographyResultService) GetAerialPhoto
 }
 
 // QueryAerialPhotographyResult 查询并处理航摄成果数据
-func (ALPhotographyResultService *AerialPhotographyResultService) QueryAerialPhotographyResult(c *gin.Context) ([]AerialPhotographyResultPkg.AerialPhotographyResult, []AerialPhotographyResultPkg.AerialPhotographyResult, error) {
+func (ALPhotographyResultService *AerialPhotographyResultService) QueryAerialPhotographyResult(c *gin.Context) ([]AerialPhotographyResultPkg.AerialPhotographyResult, []AerialPhotographyResultPkg.AerialPhotographyResult, []AerialPhotographyResultPkg.AerialPhotographyResult, error) {
 	var dataList []AerialPhotographyResultPkg.AerialPhotographyResult
 	var modelList []AerialPhotographyResultPkg.AerialPhotographyResult
 	var orthoList []AerialPhotographyResultPkg.AerialPhotographyResult
+	var multiSpectraList []AerialPhotographyResultPkg.AerialPhotographyResult
 	nestInfoService := new(NestInfo.NestInfoService)
 	nestIDList, err := nestInfoService.GetNestIDListByUser(c)
 	if err != nil {
-		return modelList, orthoList, err
+		return modelList, orthoList, multiSpectraList, err
 	}
-	querySql := "select id,status,name,photography_createtime,type,nest_ids, REPLACE(JSON_EXTRACT(aerial_photography_file, '$[0].url'),'\"','') aerial_photography_file, position, load_or_not from aerial_photography_result where 1 = 1 and status = 2 and load_or_not = 0 and deleted_by = 0 "
+	querySql := "select id,status,name,photography_createtime,type,nest_ids, REPLACE(JSON_EXTRACT(aerial_photography_file, '$[0].url'),'\"','') aerial_photography_file, position, load_or_not from aerial_photography_result where 1 = 1 and status = 2 and load_or_not = 0 and deleted_by = 0  "
 	db := global.GVA_DB.Model(&AerialPhotographyResultPkg.AerialPhotographyResult{})
 	if len(nestIDList) > 0 {
 		sqlWhere := ""
@@ -184,11 +192,45 @@ func (ALPhotographyResultService *AerialPhotographyResultService) QueryAerialPho
 					item.FileUrl = &info
 					item.AerialPhotographyFile = nil
 					modelList = append(modelList, item)
+				} else if *item.Type == 2 {
+					//多光谱
+					if url != "" && item.Position != "" {
+						//查询子表
+						posMap := make(map[string]int)
+						parseErr := json.Unmarshal([]byte(item.Position), &posMap)
+						if parseErr == nil {
+							//var info string
+							//info = filepath.Join(url, "{z}", "{x}", "{y}"+".png")
+							//item.FileUrl = &info
+							var pageInfo MultiSpectraTypeReq.MultiSpectraTypeSearch
+							pageInfo.PageInfo.Page = 1
+							pageInfo.PageInfo.PageSize = 99999
+							pageInfo.MultiSpectraType.AerialPhotographyId = item.ID
+							service := MultiSpectraType2.MultiSpectraTypeService{}
+							list, _, getErr := service.GetMultiSpectraTypeInfoList(pageInfo)
+							if getErr != nil {
+
+							} else {
+								for _, spectraType := range list {
+									var info string
+									info = filepath.Join(url, spectraType.SpectraType, "{z}", "{x}", "{y}"+".png")
+									spectraType.FileUrl = &info
+									item.MultiSpectraTypeList = append(item.MultiSpectraTypeList, spectraType)
+								}
+							}
+
+							item.AerialPhotographyFile = nil //此处赋空值为避免最后返回结果时解析第三方包json报错
+							multiSpectraList = append(multiSpectraList, item)
+
+						} else {
+							global.GVA_LOG.Error(parseErr.Error())
+						}
+					}
 				}
 			}
 		}
 	}
-	return modelList, orthoList, queryErr.Error
+	return modelList, orthoList, multiSpectraList, queryErr.Error
 
 }
 
@@ -210,6 +252,7 @@ func AutoCompressAerialPhotographyFile() {
 					global.GVA_LOG.Info("航摄成果自动解压开始")
 					db.Exec("update aerial_photography_result set status = 1 where id = ?", alRes.ID)
 					fileJsonStr := alRes.AerialPhotographyFile.String()
+					aerialType := alRes.Type
 					if fileJsonStr != "" {
 						fileDataArr := make([]map[string]interface{}, 0, 0)
 						fmt.Println(fileJsonStr)
@@ -229,6 +272,13 @@ func AutoCompressAerialPhotographyFile() {
 								//解压成功,更新航摄成果状态
 								db.Exec("update aerial_photography_result set status = 2 where id = ?", alRes.ID)
 								global.GVA_LOG.Info("航摄成果自动解压结束")
+								//航摄成果类型为多光谱时要新增光谱类型子表
+								if *aerialType == 2 {
+									insertMtTypeErr := AerialPhotographyFileInsertMultiSpectra(url[0:strings.LastIndex(url, ".")], alRes.ID)
+									if insertMtTypeErr != nil {
+										//todo insert aerial multi type error
+									}
+								}
 							} else {
 								db.Exec("update aerial_photography_result set status = 3 where id = ?", alRes.ID)
 								global.GVA_LOG.Error("航摄成果自动解压异常:" + unzipErr.Error())
@@ -291,7 +341,7 @@ func AerialPhotographyFileUnzip(zipFile string, destDir string, alRes AerialPhot
 				if err != nil {
 					global.GVA_LOG.Info("ioutil.ReadFile error:" + err.Error())
 				}
-				if len(readFile) > 102400 && !flag {
+				if len(readFile) > 51200 && !flag {
 					posMap := make(map[string]int64)
 					name := outFile.Name()
 					name = strings.ReplaceAll(name, "/", "\\")
@@ -317,4 +367,36 @@ func AerialPhotographyFileUnzip(zipFile string, destDir string, alRes AerialPhot
 		}
 	}
 	return paths, nil
+}
+
+//解压航摄成果后类型为多光谱时新建光谱类型子表
+func AerialPhotographyFileInsertMultiSpectra(dst string, aerialId uint) error {
+	var handleErr error
+	readdir, err := os.ReadDir(dst)
+	if err != nil {
+		return err
+	}
+	for _, dir := range readdir {
+		if strings.EqualFold(strings.ToUpper(dir.Name()), "RGB") ||
+			strings.EqualFold(strings.ToUpper(dir.Name()), "OSAVI") ||
+			strings.EqualFold(strings.ToUpper(dir.Name()), "NDVI") ||
+			strings.EqualFold(strings.ToUpper(dir.Name()), "NDRE") ||
+			strings.EqualFold(strings.ToUpper(dir.Name()), "LCI") ||
+			strings.EqualFold(strings.ToUpper(dir.Name()), "GNDVI") {
+			m := new(MultiSpectraType.MultiSpectraType)
+			m.AerialPhotographyId = aerialId
+			m.AerialServerAddress = ""
+			m.SpectraType = strings.ToUpper(dir.Name())
+			err = global.GVA_DB.Create(m).Error
+			if err != nil {
+				handleErr = err
+			}
+		}
+	}
+	if handleErr != nil {
+		return handleErr
+	} else {
+		return nil
+	}
+	return errors.New("新增航摄成果多光谱类型子表未知异常")
 }

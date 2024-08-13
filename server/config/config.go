@@ -33,4 +33,7 @@ type Server struct {
 
 	//文件服务器配置
 	FileServer FileServer `mapstructure:"file-server" json:"file-server" yaml:"file-server"`
+
+	//问题记录
+	ProblemRecord ProblemRecord `mapstructure:"problem-record" json:"problem-record" yaml:"problem-record"`
 }

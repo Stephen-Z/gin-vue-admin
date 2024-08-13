@@ -107,6 +107,18 @@ func Routers() *gin.Engine {
 		ProblemRecordPkgRouter := router.RouterGroupApp.ProblemRecordPkg
 		ProblemRecordPkgRouter.InitProblemRecordRouter(PrivateGroup)
 	}
+	{
+		MultiSpectraAnalysisPkgRouter := router.RouterGroupApp.MultiSpectraAnalysisPkg
+		MultiSpectraAnalysisPkgRouter.InitMultiSpectraAnalysisRouter(PrivateGroup)
+	}
+	{
+		MultiSpectraPlateRouter := router.RouterGroupApp.MultiSpectraPlate
+		MultiSpectraPlateRouter.InitMultiSpectraPlateRouter(PrivateGroup)
+	}
+	{
+		MultiSpectraTypeRouter := router.RouterGroupApp.MultiSpectraType
+		MultiSpectraTypeRouter.InitMultiSpectraTypeRouter(PrivateGroup)
+	}
 
 	global.GVA_LOG.Info("router register success")
 	return Router
