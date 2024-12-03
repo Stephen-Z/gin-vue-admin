@@ -67,38 +67,36 @@ func (NtAirlineService *NestAirlineService) GetNestAirline(id uint) (NtAirline N
 
 // GetNestAirlineInfoList 分页获取NestAirline记录
 // Author [piexlmax](https://github.com/piexlmax)
-//func (NtAirlineService *NestAirlineService) GetNestAirlineInfoList(info NestAirlinePkgReq.NestAirlineSearch, c *gin.Context) (list []NestAirlinePkg.NestAirline, total int64, err error) {
-//	nestInfoService := new(NestInfo.NestInfoService)
-//	nestIDList, err := nestInfoService.GetNestIDListByUser(c)
-//	if err != nil {
-//		return
-//	}
-//	limit := info.PageSize
-//	offset := info.PageSize * (info.Page - 1)
-//	// 创建db
-//	db := global.GVA_DB.Model(&NestAirlinePkg.NestAirline{})
-//	var NtAirlines []NestAirlinePkg.NestAirline
-//	// 如果有条件搜索 下方会自动创建搜索语句
-//	if info.StartCreatedAt != nil && info.EndCreatedAt != nil {
-//		db = db.Where("created_at BETWEEN ? AND ?", info.StartCreatedAt, info.EndCreatedAt)
-//	}
-//	db.Where("nest_id in ?", nestIDList)
-//	err = db.Count(&total).Error
-//	if err != nil {
-//		return
+//
+//	func (NtAirlineService *NestAirlineService) GetNestAirlineInfoList(info NestAirlinePkgReq.NestAirlineSearch, c *gin.Context) (list []NestAirlinePkg.NestAirline, total int64, err error) {
+//		nestInfoService := new(NestInfo.NestInfoService)
+//		nestIDList, err := nestInfoService.GetNestIDListByUser(c)
+//		if err != nil {
+//			return
+//		}
+//		limit := info.PageSize
+//		offset := info.PageSize * (info.Page - 1)
+//		// 创建db
+//		db := global.GVA_DB.Model(&NestAirlinePkg.NestAirline{})
+//		var NtAirlines []NestAirlinePkg.NestAirline
+//		// 如果有条件搜索 下方会自动创建搜索语句
+//		if info.StartCreatedAt != nil && info.EndCreatedAt != nil {
+//			db = db.Where("created_at BETWEEN ? AND ?", info.StartCreatedAt, info.EndCreatedAt)
+//		}
+//		db.Where("nest_id in ?", nestIDList)
+//		err = db.Count(&total).Error
+//		if err != nil {
+//			return
+//		}
+//
+//		err = db.Limit(limit).Offset(offset).Find(&NtAirlines).Error
+//		return NtAirlines, total, err
 //	}
 //
-//	err = db.Limit(limit).Offset(offset).Find(&NtAirlines).Error
-//	return NtAirlines, total, err
-//}
 // GetNestAirlineInfoList 分页获取NestAirline记录并计算执行完的作业记录数
 // Author [piexlmax](https://github.com/piexlmax)
 func (NtAirlineService *NestAirlineService) GetNestAirlineInfoList(info NestAirlinePkgReq.NestAirlineSearch, c *gin.Context) (list []NestAirlinePkg.NestAirline, total int64, err error) {
 	nestInfoService := new(NestInfo.NestInfoService)
-	nestIDList, err := nestInfoService.GetNestIDListByUser(c)
-	if err != nil {
-		return
-	}
 	limit := info.PageSize
 	offset := info.PageSize * (info.Page - 1)
 	// 创建db
@@ -109,7 +107,16 @@ func (NtAirlineService *NestAirlineService) GetNestAirlineInfoList(info NestAirl
 	if info.StartCreatedAt != nil && info.EndCreatedAt != nil {
 		db = db.Where("created_at BETWEEN ? AND ?", info.StartCreatedAt, info.EndCreatedAt)
 	}
-	db.Where("nest_id in ?", nestIDList)
+	if info.NestId != "" {
+		db.Where("nest_id = ?", info.NestId)
+	} else {
+		nestIDList, err := nestInfoService.GetNestIDListByUser(c)
+		if err != nil {
+			global.GVA_LOG.Error(err.Error())
+		}
+		db.Where("nest_id in ?", nestIDList)
+	}
+
 	err = db.Count(&total).Error
 	if err != nil {
 		return

@@ -10,5 +10,6 @@ type NestAirlineSearch struct {
 	NestAirlinePkg.NestAirline
 	StartCreatedAt *time.Time `json:"startCreatedAt" form:"startCreatedAt"`
 	EndCreatedAt   *time.Time `json:"endCreatedAt" form:"endCreatedAt"`
+	NestId         string     `json:"nestId" form:"nestId"`
 	request.PageInfo
 }
