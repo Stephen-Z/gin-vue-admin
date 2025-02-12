@@ -116,6 +116,12 @@ func (NtAirlineService *NestAirlineService) GetNestAirlineInfoList(info NestAirl
 		}
 		db.Where("nest_id in ?", nestIDList)
 	}
+	if info.Name != "" {
+		db.Where("name like ?", "%"+info.Name+"%")
+	}
+	if info.Type >= 0 {
+		db.Where("type = ?", info.Type)
+	}
 
 	err = db.Count(&total).Error
 	if err != nil {
@@ -139,8 +145,11 @@ func (NtAirlineService *NestAirlineService) GetNestAirlineInfoList(info NestAirl
 
 // NoPageGetNestAirlineInfoList 不分页获取NestAirline记录
 // Author [piexlmax](https://github.com/piexlmax)
-func (NtAirlineService *NestAirlineService) NoPageGetNestAirlineInfoList(nestId string, c *gin.Context) (list []map[string]interface{}, err error) {
+func (NtAirlineService *NestAirlineService) NoPageGetNestAirlineInfoList(info NestAirlinePkgReq.NestAirlineSearch, c *gin.Context) (list []map[string]interface{}, total int64, err error) {
 	nestInfoService := new(NestInfo.NestInfoService)
+	limit := info.PageSize
+	offset := info.PageSize * (info.Page - 1)
+
 	nestIDList, err := nestInfoService.GetNestIDListByUser(c)
 	if err != nil {
 		return
@@ -148,15 +157,42 @@ func (NtAirlineService *NestAirlineService) NoPageGetNestAirlineInfoList(nestId 
 	// 创建db
 	db := global.GVA_DB.Model(&NestAirlinePkg.NestAirline{})
 	db.Where("nest_id in ?", nestIDList)
+	if info.Name != "" {
+		db.Where("name like ?", "%"+info.Name+"%")
+	}
+	if info.Type >= 0 {
+		db.Where("type = ?", info.Type)
+	}
+	if info.NestId != "" {
+		db.Where("nest_id = ?", info.NestId)
+	}
 	//var NtAirlines []NestAirlinePkg.NestAirline
 	NtAirlines := make([]map[string]interface{}, 0, 0)
-	if nestId != "" {
-		err = db.Where("nest_id = ?", nestId).Order("created_at desc").Find(&NtAirlines).Error
-	} else {
-		err = db.Order("created_at desc").Find(&NtAirlines).Error
+	var copyNtAirlines []map[string]interface{}
+	if info.NestId != "" {
+		db.Where("nest_id = ?", info.NestId)
 	}
-
-	return NtAirlines, err
+	err = db.Count(&total).Error
+	if err != nil {
+		return
+	}
+	db.Order("updated_at desc")
+	if limit > 0 && offset > 0 {
+		db.Limit(limit).Offset(offset)
+	}
+	err = db.Find(&NtAirlines).Error
+	for _, airline := range NtAirlines {
+		db2 := global.GVA_DB.Model(&NestExecRecordPkg.NestExecRecord{})
+		var Count int
+		scanErr := db2.Raw("select count(1) Count from nest_exec_record  where missionid = ?", airline["missionid"]).Scan(&Count)
+		if scanErr.Error != nil {
+			global.GVA_LOG.Error(scanErr.Error.Error())
+		}
+		airline["total"] = &Count
+		copyNtAirlines = append(copyNtAirlines, airline)
+	}
+	NtAirlines = nil
+	return copyNtAirlines, total, err
 }
 
 // GetNestAirlineByMIssionId 根据missionid获取NestAirline记录

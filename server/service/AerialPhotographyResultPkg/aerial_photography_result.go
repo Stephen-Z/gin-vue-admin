@@ -158,7 +158,8 @@ func (ALPhotographyResultService *AerialPhotographyResultService) QueryAerialPho
 			}
 		}
 		sqlWhere = "(" + sqlWhere + ")"
-		db.Where(sqlWhere)
+		//db.Where(sqlWhere)
+		querySql += " and " + sqlWhere
 	}
 	querySql += " order by photography_createtime desc "
 	queryErr := db.Raw(querySql).Find(&dataList)
@@ -369,7 +370,7 @@ func AerialPhotographyFileUnzip(zipFile string, destDir string, alRes AerialPhot
 	return paths, nil
 }
 
-//解压航摄成果后类型为多光谱时新建光谱类型子表
+// 解压航摄成果后类型为多光谱时新建光谱类型子表
 func AerialPhotographyFileInsertMultiSpectra(dst string, aerialId uint) error {
 	var handleErr error
 	readdir, err := os.ReadDir(dst)
