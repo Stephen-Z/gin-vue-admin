@@ -124,12 +124,15 @@ func (ALPhotographyResultService *AerialPhotographyResultService) GetAerialPhoto
 		sqlWhere = "(" + sqlWhere + ")"
 		db.Where(sqlWhere)
 	}
+	db.Order("created_at desc")
 	err = db.Count(&total).Error
 	if err != nil {
 		return
 	}
-
-	err = db.Limit(limit).Offset(offset).Find(&ALPhotographyResults).Error
+	if info.PageSize > 0 && info.Page > 0 {
+		db.Limit(limit).Offset(offset)
+	}
+	err = db.Find(&ALPhotographyResults).Error
 	return ALPhotographyResults, total, err
 }
 
@@ -337,7 +340,7 @@ func AerialPhotographyFileUnzip(zipFile string, destDir string, alRes AerialPhot
 				return []string{}, err
 			}
 
-			if *alRes.Type == 0 {
+			if *alRes.Type == 0 || *alRes.Type == 2 {
 				readFile, err := ioutil.ReadFile(outFile.Name())
 				if err != nil {
 					global.GVA_LOG.Info("ioutil.ReadFile error:" + err.Error())

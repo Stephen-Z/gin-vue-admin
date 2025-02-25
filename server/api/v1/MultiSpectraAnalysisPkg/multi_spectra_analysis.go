@@ -152,7 +152,7 @@ func (MtSpectraAlyApi *MultiSpectraAnalysisApi) GetMultiSpectraAnalysisList(c *g
 		response.FailWithMessage(err.Error(), c)
 		return
 	}
-	if list, total, err := MtSpectraAlyService.GetMultiSpectraAnalysisInfoList(pageInfo); err != nil {
+	if list, total, err := MtSpectraAlyService.GetMultiSpectraAnalysisInfoList(pageInfo, c); err != nil {
 		global.GVA_LOG.Error("获取失败!", zap.Error(err))
 		response.FailWithMessage("获取失败", c)
 	} else {

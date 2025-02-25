@@ -63,6 +63,8 @@ func (MtSpectraTypeService *MultiSpectraTypeService) GetMultiSpectraTypeInfoList
 	if info.StartCreatedAt != nil && info.EndCreatedAt != nil {
 		db = db.Where("created_at BETWEEN ? AND ?", info.StartCreatedAt, info.EndCreatedAt)
 	}
+	db.Group("spectra_type")
+	db.Order("id")
 	err = db.Count(&total).Error
 	if err != nil {
 		return

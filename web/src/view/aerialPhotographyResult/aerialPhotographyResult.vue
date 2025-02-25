@@ -104,6 +104,12 @@
           prop="uploadBy"
           width="120"
         />
+        <el-table-column
+          align="left"
+          label="服务地址"
+          prop="aerialServerAddress"
+          width="100"
+        />
         <el-table-column align="left" label="类型" prop="type" width="120">
           <template #default="scope">
             {{ convertTableValue(scope.row.type, typeList) }}
@@ -210,6 +216,13 @@
         <el-form-item label="上传人:" prop="uploadBy">
           <el-input
             v-model="formData.uploadBy"
+            :clearable="true"
+            placeholder="请输入"
+          />
+        </el-form-item>
+         <el-form-item label="服务地址:" prop="aerialServerAddress">
+          <el-input
+            v-model="formData.aerialServerAddress"
             :clearable="true"
             placeholder="请输入"
           />
@@ -330,6 +343,7 @@ const formData = ref({
   aerialPhotographyFile: [],
   loadOrNot: 0,
   nestIds: "",
+  aerialServerAddress: "",
 });
 const statusList = [
   { value: 0, label: "上传中" },
