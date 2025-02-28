@@ -39,6 +39,28 @@ func (ALPhotographyResultService *AerialPhotographyResultService) CreateAerialPh
 	return err
 }
 
+// CreateAerialPhotographyResultZhnc 创建AerialPhotographyResult记录,智慧农场专用
+// Author [piexlmax](https://github.com/piexlmax)
+func (ALPhotographyResultService *AerialPhotographyResultService) CreateAerialPhotographyResultZhnc(jsonParam map[string]interface{}) (err error, id int) {
+	//insert  into aerial_photography_result(id,created_at,updated_at,deleted_at,name,photography_createtime,upload_by,type,aerial_photography_file,status,position,load_or_not,created_by,updated_by,deleted_by,nest_ids,execute_id,aerial_server_address,multi_spectral_ids) values (7,'2023-07-28 04:11:46.000','2024-01-15 09:57:12.001','2024-01-15 09:57:12.003','testxyz','2023-07-28 04:11:19.000','Toby',0,'[{\"uid\": 1690515723164, \"url\": \"uploads/file/101d6568b6560a378a2400ec744560c7_20230727201143.zip\", \"name\": \"tianhetestzip.zip\", \"status\": \"success\"}]',2,'{\"x\":21,\"y\":1715130,\"z\":897343}',0,1,1,1,'02d576bd-b12e-4a77-9f4e-c536dc6dde28',NULL,NULL,NULL)
+	uploadBy := jsonParam["uploadBy"].(string)
+	dataType := strconv.Itoa(int(jsonParam["type"].(float64)))
+	status := strconv.Itoa(int(jsonParam["status"].(float64)))
+	loadOrNot := strconv.Itoa(int(jsonParam["loadOrNot"].(float64)))
+	aerialPhotographyFile := jsonParam["aerialPhotographyFile"].(string)
+	position := jsonParam["position"].(string)
+	nestIds := jsonParam["nestIds"].(string)
+	aerialServerAddress := jsonParam["aerialServerAddress"].(string)
+	name := jsonParam["name"].(string)
+	//查出最大id
+	maxId := 0
+	global.GVA_DB.Raw("select max(id) maxId from aerial_photography_result").First(&maxId)
+	insertSql := "insert into aerial_photography_result (id, created_at,name,photography_createtime,upload_by,type,aerial_photography_file,status,position,load_or_not,created_by,updated_by,deleted_by,nest_ids,execute_id,aerial_server_address,multi_spectral_ids)" +
+		" values (" + strconv.Itoa(maxId+1) + ", now(), '" + name + "', now(), '" + uploadBy + "', " + dataType + ", '" + aerialPhotographyFile + "', " + status + ", '" + position + "', " + loadOrNot + ", 0, 0, 0, '" + nestIds + "', '', '" + aerialServerAddress + "', '')"
+	err = global.GVA_DB.Exec(insertSql).Error
+	return err, maxId + 1
+}
+
 // DeleteAerialPhotographyResult 删除AerialPhotographyResult记录
 // Author [piexlmax](https://github.com/piexlmax)
 func (ALPhotographyResultService *AerialPhotographyResultService) DeleteAerialPhotographyResult(ALPhotographyResult AerialPhotographyResultPkg.AerialPhotographyResult) (err error) {
@@ -147,7 +169,7 @@ func (ALPhotographyResultService *AerialPhotographyResultService) QueryAerialPho
 	if err != nil {
 		return modelList, orthoList, multiSpectraList, err
 	}
-	querySql := "select id,status,name,photography_createtime,type,nest_ids, REPLACE(JSON_EXTRACT(aerial_photography_file, '$[0].url'),'\"','') aerial_photography_file, position, load_or_not from aerial_photography_result where 1 = 1 and status = 2 and load_or_not = 0 and deleted_by = 0  "
+	querySql := "select id,status,name,photography_createtime,type,nest_ids, REPLACE(JSON_EXTRACT(aerial_photography_file, '$[0].url'),'\"','') aerial_photography_file, position, load_or_not, aerial_server_address from aerial_photography_result where 1 = 1 and status = 2 and load_or_not = 0 and deleted_by = 0  "
 	db := global.GVA_DB.Model(&AerialPhotographyResultPkg.AerialPhotographyResult{})
 	if len(nestIDList) > 0 {
 		sqlWhere := ""
@@ -157,7 +179,7 @@ func (ALPhotographyResultService *AerialPhotographyResultService) QueryAerialPho
 				sqlWhere += "nest_ids like  '%" + str + "%'"
 			} else {
 				//db.Or("nest_ids like ?", str)
-				sqlWhere += "or nest_ids like  '%" + str + "%'"
+				sqlWhere += " or nest_ids like  '%" + str + "%'"
 			}
 		}
 		sqlWhere = "(" + sqlWhere + ")"
@@ -170,8 +192,10 @@ func (ALPhotographyResultService *AerialPhotographyResultService) QueryAerialPho
 	} else {
 		for _, item := range dataList {
 			if item.AerialPhotographyFile.String() != "" {
-				url := item.AerialPhotographyFile.String()[0:strings.LastIndex(item.AerialPhotographyFile.String(), ".")]
-
+				url := item.AerialPhotographyFile.String()
+				if strings.Contains(item.AerialPhotographyFile.String(), ".") {
+					url = item.AerialPhotographyFile.String()[0:strings.LastIndex(item.AerialPhotographyFile.String(), ".")]
+				}
 				if *item.Type == 0 {
 					//ortho
 					if url != "" && item.Position != "" {

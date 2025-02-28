@@ -5,6 +5,7 @@ import (
 	"github.com/flipped-aurora/gin-vue-admin/server/model/MultiSpectraType"
 	MultiSpectraTypeReq "github.com/flipped-aurora/gin-vue-admin/server/model/MultiSpectraType/request"
 	"github.com/flipped-aurora/gin-vue-admin/server/model/common/request"
+	"strconv"
 )
 
 type MultiSpectraTypeService struct {
@@ -14,6 +15,16 @@ type MultiSpectraTypeService struct {
 // Author [piexlmax](https://github.com/piexlmax)
 func (MtSpectraTypeService *MultiSpectraTypeService) CreateMultiSpectraType(MtSpectraType *MultiSpectraType.MultiSpectraType) (err error) {
 	err = global.GVA_DB.Create(MtSpectraType).Error
+	return err
+}
+
+// CreateMultiSpectraType 创建MultiSpectraType记录,智慧农场专用
+// Author [piexlmax](https://github.com/piexlmax)
+func (MtSpectraTypeService *MultiSpectraTypeService) CreateMultiSpectraTypeZhnc(jsonParam map[string]interface{}) (err error) {
+	aerialPhotographyId := strconv.Itoa(int(jsonParam["aerialPhotographyId"].(float64)))
+	spectraType := jsonParam["spectraType"].(string)
+	insertSql := "insert into multi_spectra_type (created_at, spectra_type, aerial_photography_id) values (now(), '" + spectraType + "', " + aerialPhotographyId + ")"
+	err = global.GVA_DB.Exec(insertSql).Error
 	return err
 }
 
@@ -63,7 +74,6 @@ func (MtSpectraTypeService *MultiSpectraTypeService) GetMultiSpectraTypeInfoList
 	if info.StartCreatedAt != nil && info.EndCreatedAt != nil {
 		db = db.Where("created_at BETWEEN ? AND ?", info.StartCreatedAt, info.EndCreatedAt)
 	}
-	db.Group("spectra_type")
 	db.Order("id")
 	err = db.Count(&total).Error
 	if err != nil {

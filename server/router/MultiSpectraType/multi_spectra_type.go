@@ -21,7 +21,8 @@ func (s *MultiSpectraTypeRouter) InitMultiSpectraTypeRouter(Router *gin.RouterGr
 		MtSpectraTypeRouter.PUT("updateMultiSpectraType", MtSpectraTypeApi.UpdateMultiSpectraType)              // 更新MultiSpectraType
 	}
 	{
-		MtSpectraTypeRouterWithoutRecord.GET("findMultiSpectraType", MtSpectraTypeApi.FindMultiSpectraType)       // 根据ID获取MultiSpectraType
-		MtSpectraTypeRouterWithoutRecord.GET("getMultiSpectraTypeList", MtSpectraTypeApi.GetMultiSpectraTypeList) // 获取MultiSpectraType列表
+		MtSpectraTypeRouterWithoutRecord.GET("findMultiSpectraType", MtSpectraTypeApi.FindMultiSpectraType)              // 根据ID获取MultiSpectraType
+		MtSpectraTypeRouterWithoutRecord.GET("getMultiSpectraTypeList", MtSpectraTypeApi.GetMultiSpectraTypeList)        // 获取MultiSpectraType列表
+		MtSpectraTypeRouterWithoutRecord.POST("createMultiSpectraTypeZhnc", MtSpectraTypeApi.CreateMultiSpectraTypeZhnc) // 获取MultiSpectraType列表
 	}
 }

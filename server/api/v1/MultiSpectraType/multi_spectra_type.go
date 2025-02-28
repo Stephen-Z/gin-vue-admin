@@ -1,6 +1,7 @@
 package MultiSpectraType
 
 import (
+	"errors"
 	"github.com/flipped-aurora/gin-vue-admin/server/global"
 	"github.com/flipped-aurora/gin-vue-admin/server/model/MultiSpectraType"
 	MultiSpectraTypeReq "github.com/flipped-aurora/gin-vue-admin/server/model/MultiSpectraType/request"
@@ -33,6 +34,38 @@ func (MtSpectraTypeApi *MultiSpectraTypeApi) CreateMultiSpectraType(c *gin.Conte
 		return
 	}
 	if err := MtSpectraTypeService.CreateMultiSpectraType(&MtSpectraType); err != nil {
+		global.GVA_LOG.Error("创建失败!", zap.Error(err))
+		response.FailWithMessage("创建失败", c)
+	} else {
+		response.OkWithMessage("创建成功", c)
+	}
+}
+
+// CreateMultiSpectraTypeZhnc 创建MultiSpectraType,智慧农场专用
+// @Tags MultiSpectraType
+// @Summary 创建MultiSpectraType
+// @Security ApiKeyAuth
+// @accept application/json
+// @Produce application/json
+// @Param data body MultiSpectraType.MultiSpectraType true "创建MultiSpectraType"
+// @Success 200 {string} string "{"success":true,"data":{},"msg":"获取成功"}"
+// @Router /MtSpectraType/createMultiSpectraType [post]
+func (MtSpectraTypeApi *MultiSpectraTypeApi) CreateMultiSpectraTypeZhnc(c *gin.Context) {
+	jsonParam := make(map[string]interface{})
+	err := c.ShouldBindJSON(&jsonParam)
+	if err != nil {
+		response.FailWithMessage(err.Error(), c)
+		return
+	}
+	if _, exist := jsonParam["spectraType"]; exist && jsonParam["spectraType"] == nil {
+		response.FailWithMessage(errors.New("参数[spectraType]不能为空").Error(), c)
+		return
+	}
+	if _, exist := jsonParam["aerialPhotographyId"]; exist && jsonParam["aerialPhotographyId"] == nil {
+		response.FailWithMessage(errors.New("参数[aerialPhotographyId]不能为空").Error(), c)
+		return
+	}
+	if err := MtSpectraTypeService.CreateMultiSpectraTypeZhnc(jsonParam); err != nil {
 		global.GVA_LOG.Error("创建失败!", zap.Error(err))
 		response.FailWithMessage("创建失败", c)
 	} else {

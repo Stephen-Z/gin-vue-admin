@@ -22,7 +22,7 @@ type AerialPhotographyResult struct {
 	NestIds               string         `json:"nestIds" form:"nestIds" gorm:"column:nest_ids;comment:机巢id集;"`
 	ExecuteId             string         `json:"executeId" form:"executeId" gorm:"column:execute_id;comment:作业记录id;"`
 	MultiSpectralIds      string         `json:"multiSpectralIds" form:"multiSpectralIds" gorm:"column:multi_spectral_ids;comment:包含光谱id子表集;"`
-	AerialServerAddress   string         `json:"aerialServerAddress" form:"aerialServerAddress" gorm:"column:aerial_server_address;comment:航摄成果地址;"`
+	AerialServerAddress   *string        `json:"aerialServerAddress" form:"aerialServerAddress" gorm:"column:aerial_server_address;comment:航摄成果地址;"`
 	CreatedBy             uint           `gorm:"column:created_by;comment:创建者"`
 	UpdatedBy             uint           `gorm:"column:updated_by;comment:更新者"`
 	DeletedBy             uint           `gorm:"column:deleted_by;comment:删除者"`
