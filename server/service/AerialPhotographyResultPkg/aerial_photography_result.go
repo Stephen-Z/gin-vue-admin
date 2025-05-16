@@ -19,6 +19,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"reflect"
 	"strconv"
 	"strings"
 	"sync"
@@ -224,12 +225,34 @@ func (ALPhotographyResultService *AerialPhotographyResultService) QueryAerialPho
 					//多光谱
 					if url != "" && item.Position != "" {
 						//查询子表
-						posMap := make(map[string]int)
+						posMap := make(map[string]interface{})
 						parseErr := json.Unmarshal([]byte(item.Position), &posMap)
 						if parseErr == nil {
 							//var info string
 							//info = filepath.Join(url, "{z}", "{x}", "{y}"+".png")
 							//item.FileUrl = &info
+							//此处处理是因为从智慧农场同步过来的坐标是json字符串, 前端没有适配, 故这里解析成整形再打包成json整形字符串
+							if _, xok := posMap["x"]; xok && posMap["x"] != nil {
+								if _, yok := posMap["y"]; yok && posMap["y"] != nil {
+									if _, zok := posMap["z"]; zok && posMap["z"] != nil {
+										if reflect.TypeOf(posMap["x"]).String() == "string" {
+											xint, _ := strconv.Atoi(posMap["x"].(string))
+											yint, _ := strconv.Atoi(posMap["y"].(string))
+											zint, _ := strconv.Atoi(posMap["z"].(string))
+											newPosMap := make(map[string]int)
+											newPosMap["x"] = xint
+											newPosMap["y"] = yint
+											newPosMap["z"] = zint
+											newPosMapStr, parErr := json.Marshal(newPosMap)
+											if parErr == nil {
+												item.Position = string(newPosMapStr)
+											}
+										}
+
+									}
+								}
+							}
+
 							var pageInfo MultiSpectraTypeReq.MultiSpectraTypeSearch
 							pageInfo.PageInfo.Page = 1
 							pageInfo.PageInfo.PageSize = 99999
