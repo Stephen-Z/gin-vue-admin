@@ -60,6 +60,7 @@ func (MtSpectraAlyService *MultiSpectraAnalysisService) GetMultiSpectraAnalysisI
 
 	//permission 查出所有登录用户下所属机巢下所有航摄成果的光谱分析id集
 	ids, err := MtSpectraAlyService.QueryAerialPhotographyTypeIds(c)
+	db.Where(" deleted_at is null")
 	if ids != "" {
 		db.Where("id in (" + ids + ")")
 	}
@@ -124,6 +125,7 @@ func (MtSpectraAlyService *MultiSpectraAnalysisService) QueryAerialPhotographyTy
 		return "", errors.New("query nest is nil")
 	}
 	querySql := "select group_concat(distinct id) aerial_photography_ids from (select id, SUBSTRING_INDEX(SUBSTRING_INDEX(aerial_photography_ids, ',', 1), ',', -1) as aerial_photography_id from multi_spectra_analysis where aerial_photography_ids <> '' union all select id, SUBSTRING_INDEX(SUBSTRING_INDEX(aerial_photography_ids, ',', 2), ',', -1) as aerial_photography_id from multi_spectra_analysis where aerial_photography_ids like '%,%' and aerial_photography_ids <> '' union all select id, SUBSTRING_INDEX(SUBSTRING_INDEX(aerial_photography_ids, ',', 3), ',', -1) as aerial_photography_id from multi_spectra_analysis where aerial_photography_ids like '%,%,%' and aerial_photography_ids <> '') tab where 1 = 1 and aerial_photography_id in (select id from aerial_photography_result where 1 = 1 and status = 2 and load_or_not = 0 and deleted_by = 0  "
+	//querySql := "select group_concat(distinct id) aerial_photography_ids from aerial_photography_result where 1 = 1 and status = 2 and load_or_not = 0 and deleted_by = 0    "
 	if len(nestIDList) > 0 {
 		sqlWhere := " "
 		for i, str := range nestIDList {
@@ -135,8 +137,8 @@ func (MtSpectraAlyService *MultiSpectraAnalysisService) QueryAerialPhotographyTy
 				sqlWhere += "or nest_ids like  '%" + str + "%'"
 			}
 		}
-		sqlWhere = "(" + sqlWhere + ")"
-		querySql += " and " + sqlWhere + ")"
+		sqlWhere = "(" + sqlWhere + "))"
+		querySql += " and " + sqlWhere
 	}
 	queryErr := db.Raw(querySql).First(&Ids).Error
 	return Ids, queryErr

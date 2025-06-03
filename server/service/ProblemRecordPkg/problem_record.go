@@ -1,6 +1,7 @@
 package ProblemRecordPkg
 
 import (
+	"fmt"
 	"github.com/flipped-aurora/gin-vue-admin/server/global"
 	"github.com/flipped-aurora/gin-vue-admin/server/model/ProblemRecordPkg"
 	ProblemRecordPkgReq "github.com/flipped-aurora/gin-vue-admin/server/model/ProblemRecordPkg/request"
@@ -114,7 +115,10 @@ func (pbRecordService *ProblemRecordService) GetProblemRecordInfoList(info Probl
 			if first.Error != nil {
 			} else {
 				if mtType["FileUrl"] != nil {
-					url := mtType["FileUrl"].(string)[1:strings.LastIndex(mtType["FileUrl"].(string), ".")]
+					url := fmt.Sprintf("%s", strings.ReplaceAll(mtType["FileUrl"].(string), "\"", ""))
+					if strings.Contains(mtType["FileUrl"].(string), ".") {
+						url = fmt.Sprintf("%s", strings.ReplaceAll(mtType["FileUrl"].(string), "\"", ""))[1:strings.LastIndex(mtType["FileUrl"].(string), ".")]
+					}
 					filepaths := filepath.Join(url, mtType["spectraType"].(string), "{z}", "{x}", "{y}"+".png")
 					mtType["FileUrl"] = &filepaths
 				}

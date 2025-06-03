@@ -170,6 +170,7 @@ func (ALPhotographyResultService *AerialPhotographyResultService) QueryAerialPho
 	if err != nil {
 		return modelList, orthoList, multiSpectraList, err
 	}
+
 	querySql := "select id,status,name,photography_createtime,type,nest_ids, REPLACE(JSON_EXTRACT(aerial_photography_file, '$[0].url'),'\"','') aerial_photography_file, position, load_or_not, aerial_server_address from aerial_photography_result where 1 = 1 and status = 2 and load_or_not = 0 and deleted_by = 0  "
 	db := global.GVA_DB.Model(&AerialPhotographyResultPkg.AerialPhotographyResult{})
 	if len(nestIDList) > 0 {
@@ -187,6 +188,18 @@ func (ALPhotographyResultService *AerialPhotographyResultService) QueryAerialPho
 		//db.Where(sqlWhere)
 		querySql += " and " + sqlWhere
 	}
+	aerialPhotographyIds := c.Query("aerialPhotographyIds")
+	multiSpectraTypeIds := c.Query("multiSpectraTypeIds")
+	aerialPhotographyIdsArr := strings.Split(aerialPhotographyIds, ",")
+	multiSpectraTypeIdsArr := strings.Split(multiSpectraTypeIds, ",")
+	if len(aerialPhotographyIdsArr) > 0 && aerialPhotographyIds != "" {
+		querySql += " and id in (''"
+		for _, id := range aerialPhotographyIdsArr {
+			querySql += "," + id
+		}
+		querySql += "  )"
+	}
+
 	querySql += " order by photography_createtime desc "
 	queryErr := db.Raw(querySql).Find(&dataList)
 	if queryErr.Error != nil {
@@ -200,7 +213,7 @@ func (ALPhotographyResultService *AerialPhotographyResultService) QueryAerialPho
 				if *item.Type == 0 {
 					//ortho
 					if url != "" && item.Position != "" {
-						posMap := make(map[string]int)
+						posMap := make(map[string]interface{})
 						parseErr := json.Unmarshal([]byte(item.Position), &posMap)
 						if parseErr == nil {
 							var info string
@@ -263,10 +276,20 @@ func (ALPhotographyResultService *AerialPhotographyResultService) QueryAerialPho
 
 							} else {
 								for _, spectraType := range list {
-									var info string
-									info = filepath.Join(url, spectraType.SpectraType, "{z}", "{x}", "{y}"+".png")
-									spectraType.FileUrl = &info
-									item.MultiSpectraTypeList = append(item.MultiSpectraTypeList, spectraType)
+									if len(multiSpectraTypeIdsArr) > 0 && multiSpectraTypeIds != "" {
+										if InSlice(multiSpectraTypeIdsArr, strconv.Itoa(int(spectraType.ID))) {
+											var info string
+											info = filepath.Join(url, spectraType.SpectraType, "{z}", "{x}", "{y}"+".png")
+											spectraType.FileUrl = &info
+											item.MultiSpectraTypeList = append(item.MultiSpectraTypeList, spectraType)
+										}
+									} else {
+										var info string
+										info = filepath.Join(url, spectraType.SpectraType, "{z}", "{x}", "{y}"+".png")
+										spectraType.FileUrl = &info
+										item.MultiSpectraTypeList = append(item.MultiSpectraTypeList, spectraType)
+									}
+
 								}
 							}
 
@@ -283,6 +306,14 @@ func (ALPhotographyResultService *AerialPhotographyResultService) QueryAerialPho
 	}
 	return modelList, orthoList, multiSpectraList, queryErr.Error
 
+}
+func InSlice(items []string, item string) bool {
+	for _, eachItem := range items {
+		if eachItem == item {
+			return true
+		}
+	}
+	return false
 }
 
 // AutoCompressAerialPhotographyFile 自动解压航摄文件并更新记录状态
