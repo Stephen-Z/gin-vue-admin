@@ -119,9 +119,9 @@ func (NtAirlineService *NestAirlineService) GetNestAirlineInfoList(info NestAirl
 	if info.Name != "" {
 		db.Where("name like ?", "%"+info.Name+"%")
 	}
-	if info.Type >= 0 {
-		db.Where("type = ?", info.Type)
-	}
+	//if info.Type >= 0 {
+	//	db.Where("type = ?", info.Type)
+	//}
 
 	err = db.Count(&total).Error
 	if err != nil {
