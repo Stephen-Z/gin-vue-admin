@@ -7,6 +7,7 @@ import (
 	"github.com/flipped-aurora/gin-vue-admin/server/api/v1/NestExecRecordPkg"
 	"github.com/flipped-aurora/gin-vue-admin/server/api/v1/NestInfo"
 	"github.com/flipped-aurora/gin-vue-admin/server/api/v1/Nestrolepkg"
+	"github.com/flipped-aurora/gin-vue-admin/server/api/v1/ProblemRecordPkg"
 	"github.com/flipped-aurora/gin-vue-admin/server/api/v1/Theme"
 	"github.com/flipped-aurora/gin-vue-admin/server/api/v1/UserTeemlinkPkg"
 	"github.com/flipped-aurora/gin-vue-admin/server/api/v1/example"
@@ -24,6 +25,7 @@ type ApiGroup struct {
 	UserTeemlinkPkgApiGroup            UserTeemlinkPkg.ApiGroup
 	AerialPhotographyResultPkgApiGroup AerialPhotographyResultPkg.ApiGroup
 	ThemeApiGroup                      Theme.ApiGroup
+	ProblemRecordPkgApiGroup           ProblemRecordPkg.ApiGroup
 }
 
 var ApiGroupApp = new(ApiGroup)

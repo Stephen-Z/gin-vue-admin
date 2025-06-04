@@ -192,6 +192,12 @@
         />
         <el-table-column
           align="left"
+          label="是否多光谱"
+          prop="useMultispectrum"
+          width="120"
+        />
+        <el-table-column
+          align="left"
           label="固定返航点"
           prop="fixedReturnPoint"
           width="120"
@@ -427,6 +433,13 @@
             placeholder="请输入"
           />
         </el-form-item>
+         <el-form-item label="是否多光谱:" prop="useMultispectrum">
+          <el-input-number
+            v-model="formData.useMultispectrum"
+            :clearable="true"
+            placeholder="请输入"
+          />
+        </el-form-item>
         <el-form-item label="固定返航点:" prop="fixedReturnPoint">
           <el-input
             v-model="formData.fixedReturnPoint"
@@ -538,6 +551,7 @@ const formData = ref({
   producer: "",
   productionUnit: "",
   isActive: "",
+  useMultispectrum: 0,
   fixedReturnPoint: "",
   nestId: "",
   remark: "",

@@ -177,6 +177,7 @@ export default {
 </script>
 
 <script setup>
+import { findThemeByRoleId } from "@/api/user";
 import Aside from "@/view/layout/aside/index.vue";
 import HistoryComponent from "@/view/layout/aside/historyComponent/history.vue";
 import Search from "@/view/layout/search/search.vue";
@@ -292,15 +293,83 @@ const backgroundColor = computed(() => {
 });
 
 const matched = computed(() => route.meta.matched);
-
+const defaultThemes = {
+  backgroundPhoto: [
+    {
+      name: "login_background1.png",
+      url: "uploads/file/3c5192e8d553bdf18741ab6f01beb669_20231016153502.png",
+      uid: 1697443136505,
+      status: "success",
+    },
+    {
+      name: "login_background2.png",
+      url: "uploads/file/5bc1da8e95ff528d72882f3db39a7d37_20231016153504.png",
+      uid: 1697443136506,
+      status: "success",
+    },
+    {
+      name: "login_background3.jpg",
+      url: "uploads/file/394c1a5822b3934109d2a078f7500a84_20231016153506.jpg",
+      uid: 1697443136507,
+      status: "success",
+    },
+  ],
+  systemLogo: [
+    {
+      name: "logo.png",
+      url: "uploads/file/96d6f2e7e1f705ab5e59c84a6dc009b2_20231016153500.png",
+      uid: 1697443136501,
+      status: "success",
+    },
+  ],
+  loginViewLogo: [
+    {
+      name: "index-removebg-preview.png",
+      url: "uploads/file/83baf2016971cfedc7f12efae74b3576_20231016155906.png",
+      uid: 1697443241479,
+      status: "success",
+    },
+  ],
+  systemName: "智农飞手",
+};
+const theme = ref({
+  backgroundPhoto: [],
+  systemLogo: [],
+  loginViewLogo: [],
+  systemName: "",
+});
 const changeUserAuth = async (id) => {
   const res = await setUserAuthority({
     authorityId: id,
   });
   if (res.code === 0) {
     window.sessionStorage.setItem("needCloseAll", "true");
-    window.location.reload();
+    await setTheme(id);
+    window.location.href = "/";
   }
+};
+const setTheme = async (id) => {
+  const res = await findThemeByRoleId({
+    userRoles: id,
+  });
+  console.log(res);
+  if (res.code !== 7) {
+    Object.assign(theme.value, res.data.retheme);
+
+    theme.value.loginViewLogo =
+      theme.value.loginViewLogo === ""
+        ? []
+        : JSON.parse(theme.value.loginViewLogo);
+    theme.value.systemLogo =
+      theme.value.systemLogo === "" ? [] : JSON.parse(theme.value.systemLogo);
+    theme.value.backgroundPhoto =
+      theme.value.backgroundPhoto === ""
+        ? []
+        : JSON.parse(theme.value.backgroundPhoto);
+  } else {
+    Object.assign(theme.value, defaultThemes);
+  }
+  localStorage.setItem("theme", JSON.stringify(theme.value));
 };
 
 const reloadFlag = ref(true);
