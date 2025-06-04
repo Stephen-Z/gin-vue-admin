@@ -6,7 +6,7 @@ import (
 	"github.com/flipped-aurora/gin-vue-admin/server/global"
 	"github.com/flipped-aurora/gin-vue-admin/server/model/FlyResultPkg"
 	FlyResultPkgReq "github.com/flipped-aurora/gin-vue-admin/server/model/FlyResultPkg/request"
-	"github.com/flipped-aurora/gin-vue-admin/server/model/NestAirlinePkg"
+	NestAirlinePkgReq "github.com/flipped-aurora/gin-vue-admin/server/model/NestAirlinePkg/request"
 	"github.com/flipped-aurora/gin-vue-admin/server/model/common/request"
 	"github.com/flipped-aurora/gin-vue-admin/server/model/common/response"
 	"github.com/flipped-aurora/gin-vue-admin/server/service"
@@ -205,15 +205,16 @@ func (FlyRtApi *FlyResultApi) GetFlyResultList(c *gin.Context) {
 // @Success 200 {string} string "{"success":true,"data":{},"msg":"获取成功"}"
 // @Router /FlyRt/getFlyResultList [get]
 func (FlyRtApi *FlyResultApi) QueryAirlineRecordFlyResult(c *gin.Context) {
-	var NtAirline NestAirlinePkg.NestAirline
-	err := c.ShouldBindQuery(&NtAirline)
+	//var NtAirline NestAirlinePkg.NestAirline
+	var pageInfo NestAirlinePkgReq.NestAirlineSearch
+	err := c.ShouldBindQuery(&pageInfo)
 	if err != nil {
 		response.FailWithMessage(err.Error(), c)
 		return
 	}
 
 	//获取航线列表
-	airlineList, err := NestAirlineService.NoPageGetNestAirlineInfoList(NtAirline.NestId, c)
+	airlineList, count, err := NestAirlineService.NoPageGetNestAirlineInfoList(pageInfo, c)
 	if err != nil {
 		global.GVA_LOG.Error("获取失败!", zap.Error(err))
 		response.FailWithMessage("获取失败", c)
@@ -304,7 +305,7 @@ func (FlyRtApi *FlyResultApi) QueryAirlineRecordFlyResult(c *gin.Context) {
 		airline["img_count"] = imgCount
 		airline["video_count"] = videoCount
 	}
-	response.OkWithData(gin.H{"airlineList": airlineList}, c)
+	response.OkWithData(gin.H{"airlineList": airlineList, "total": count, "page": pageInfo.Page, "pagesize": pageInfo.PageSize}, c)
 }
 
 // DataresultDownload 数据成果打包下载
@@ -358,7 +359,7 @@ func (FlyRtApi *FlyResultApi) DataResultDownload(c *gin.Context) {
 	}
 }
 
-//每日凌晨定时清除压缩完的作业成果
+// 每日凌晨定时清除压缩完的作业成果
 func TimeToClearCompressFile() {
 	t := time.NewTimer(SetTime(0, 1, 0))
 	defer t.Stop()

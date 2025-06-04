@@ -84,6 +84,8 @@ const formData = ref({
             lng: 0,
             lat: 0,
             nestid: "",
+            multiSpectraId: '',
+            AerialPhotographyId: '',
         })
 // 验证规则
 const rule = reactive({

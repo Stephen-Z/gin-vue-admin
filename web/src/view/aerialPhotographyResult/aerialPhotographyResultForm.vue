@@ -30,6 +30,13 @@
             placeholder="请输入"
           />
         </el-form-item>
+        <el-form-item label="服务地址:" prop="aerialServerAddress">
+          <el-input
+            v-model="formData.aerialServerAddress"
+            :clearable="true"
+            placeholder="请输入"
+          />
+        </el-form-item>
         <el-form-item label="类型:" prop="type">
           <el-input
             v-model.number="formData.type"
@@ -108,6 +115,7 @@ const formData = ref({
   position: "",
   loadOrNot: 0,
   nestIds: "",
+  aerialServerAddress: "",
 });
 // 验证规则
 const rule = reactive({});

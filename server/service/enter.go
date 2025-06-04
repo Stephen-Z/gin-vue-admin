@@ -3,6 +3,9 @@ package service
 import (
 	"github.com/flipped-aurora/gin-vue-admin/server/service/AerialPhotographyResultPkg"
 	"github.com/flipped-aurora/gin-vue-admin/server/service/FlyResultPkg"
+	"github.com/flipped-aurora/gin-vue-admin/server/service/MultiSpectraAnalysisPkg"
+	"github.com/flipped-aurora/gin-vue-admin/server/service/MultiSpectraPlate"
+	"github.com/flipped-aurora/gin-vue-admin/server/service/MultiSpectraType"
 	"github.com/flipped-aurora/gin-vue-admin/server/service/NestAirlinePkg"
 	"github.com/flipped-aurora/gin-vue-admin/server/service/NestExecRecordPkg"
 	"github.com/flipped-aurora/gin-vue-admin/server/service/NestInfo"
@@ -26,6 +29,9 @@ type ServiceGroup struct {
 	AerialPhotographyResultPkgServiceGroup AerialPhotographyResultPkg.ServiceGroup
 	ThemeServiceGroup                      Theme.ServiceGroup
 	ProblemRecordPkgServiceGroup           ProblemRecordPkg.ServiceGroup
+	MultiSpectraAnalysisPkgServiceGroup    MultiSpectraAnalysisPkg.ServiceGroup
+	MultiSpectraPlateServiceGroup          MultiSpectraPlate.ServiceGroup
+	MultiSpectraTypeServiceGroup           MultiSpectraType.ServiceGroup
 }
 
 var ServiceGroupApp = new(ServiceGroup)

@@ -19,5 +19,8 @@ func (e *FileUploadAndDownloadRouter) InitFileUploadAndDownloadRouter(Router *gi
 		fileUploadAndDownloadRouter.GET("findFile", exaFileUploadAndDownloadApi.FindFile)                                  // 查询当前文件成功的切片
 		fileUploadAndDownloadRouter.POST("breakpointContinueFinish", exaFileUploadAndDownloadApi.BreakpointContinueFinish) // 切片传输完成
 		fileUploadAndDownloadRouter.POST("removeChunk", exaFileUploadAndDownloadApi.RemoveChunk)                           // 删除切片
+
+		fileUploadAndDownloadRouter.POST("uploadAerialPhoto", exaFileUploadAndDownloadApi.UploadFileAerialPhoto)                   // 上传航摄成果
+		fileUploadAndDownloadRouter.POST("problemRecordMultiUploadFile", exaFileUploadAndDownloadApi.ProblemRecordMultiUploadFile) // 问题记录多文件上传
 	}
 }

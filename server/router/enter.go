@@ -4,6 +4,9 @@ import (
 	"github.com/flipped-aurora/gin-vue-admin/server/router/AerialPhotographyResult"
 	"github.com/flipped-aurora/gin-vue-admin/server/router/AerialPhotographyResultPkg"
 	"github.com/flipped-aurora/gin-vue-admin/server/router/FlyResultPkg"
+	"github.com/flipped-aurora/gin-vue-admin/server/router/MultiSpectraAnalysisPkg"
+	"github.com/flipped-aurora/gin-vue-admin/server/router/MultiSpectraPlate"
+	"github.com/flipped-aurora/gin-vue-admin/server/router/MultiSpectraType"
 	"github.com/flipped-aurora/gin-vue-admin/server/router/NestAirlinePkg"
 	"github.com/flipped-aurora/gin-vue-admin/server/router/NestExecRecordPkg"
 	"github.com/flipped-aurora/gin-vue-admin/server/router/NestInfo"
@@ -28,6 +31,9 @@ type RouterGroup struct {
 	AerialPhotographyResultPkg AerialPhotographyResultPkg.RouterGroup
 	Theme                      Theme.RouterGroup
 	ProblemRecordPkg           ProblemRecordPkg.RouterGroup
+	MultiSpectraAnalysisPkg    MultiSpectraAnalysisPkg.RouterGroup
+	MultiSpectraPlate          MultiSpectraPlate.RouterGroup
+	MultiSpectraType           MultiSpectraType.RouterGroup
 }
 
 var RouterGroupApp = new(RouterGroup)

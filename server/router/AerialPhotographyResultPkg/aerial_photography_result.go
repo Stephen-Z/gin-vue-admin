@@ -21,8 +21,9 @@ func (s *AerialPhotographyResultRouter) InitAerialPhotographyResultRouter(Router
 		ALPhotographyResultRouter.PUT("updateAerialPhotographyResult", ALPhotographyResultApi.UpdateAerialPhotographyResult)              // 更新AerialPhotographyResult
 	}
 	{
-		ALPhotographyResultRouterWithoutRecord.GET("findAerialPhotographyResult", ALPhotographyResultApi.FindAerialPhotographyResult)       // 根据ID获取AerialPhotographyResult
-		ALPhotographyResultRouterWithoutRecord.GET("getAerialPhotographyResultList", ALPhotographyResultApi.GetAerialPhotographyResultList) // 获取AerialPhotographyResult列表
-		ALPhotographyResultRouterWithoutRecord.GET("queryAerialPhotographyResult", ALPhotographyResultApi.QueryAerialPhotographyResult)     // 查询并处理航摄成果数据
+		ALPhotographyResultRouterWithoutRecord.GET("findAerialPhotographyResult", ALPhotographyResultApi.FindAerialPhotographyResult)                // 根据ID获取AerialPhotographyResult
+		ALPhotographyResultRouterWithoutRecord.GET("getAerialPhotographyResultList", ALPhotographyResultApi.GetAerialPhotographyResultList)          // 获取AerialPhotographyResult列表
+		ALPhotographyResultRouterWithoutRecord.GET("queryAerialPhotographyResult", ALPhotographyResultApi.QueryAerialPhotographyResult)              // 查询并处理航摄成果数据
+		ALPhotographyResultRouterWithoutRecord.POST("createAerialPhotographyResultZhnc", ALPhotographyResultApi.CreateAerialPhotographyResultByZhnc) // 查询并处理航摄成果数据
 	}
 }

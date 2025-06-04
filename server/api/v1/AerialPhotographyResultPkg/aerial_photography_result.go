@@ -1,6 +1,7 @@
 package AerialPhotographyResultPkg
 
 import (
+	"errors"
 	"github.com/flipped-aurora/gin-vue-admin/server/global"
 	"github.com/flipped-aurora/gin-vue-admin/server/model/AerialPhotographyResultPkg"
 	AerialPhotographyResultPkgReq "github.com/flipped-aurora/gin-vue-admin/server/model/AerialPhotographyResultPkg/request"
@@ -10,6 +11,7 @@ import (
 	"github.com/flipped-aurora/gin-vue-admin/server/utils"
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
+	"net/http"
 )
 
 type AerialPhotographyResultApi struct {
@@ -39,6 +41,42 @@ func (ALPhotographyResultApi *AerialPhotographyResultApi) CreateAerialPhotograph
 		response.FailWithMessage("创建失败", c)
 	} else {
 		response.OkWithMessage("创建成功", c)
+	}
+}
+
+// CreateAerialPhotographyResultByZhnc 创建AerialPhotographyResult,智慧农场专用
+// @Tags AerialPhotographyResult
+// @Summary 创建AerialPhotographyResult
+// @Security ApiKeyAuth
+// @accept application/json
+// @Produce application/json
+// @Param data body AerialPhotographyResultPkg.AerialPhotographyResult true "创建AerialPhotographyResult"
+// @Success 200 {string} string "{"success":true,"data":{},"msg":"获取成功"}"
+// @Router /ALPhotographyResult/createAerialPhotographyResult [post]
+func (ALPhotographyResultApi *AerialPhotographyResultApi) CreateAerialPhotographyResultByZhnc(c *gin.Context) {
+	jsonParam := make(map[string]interface{})
+	err := c.ShouldBindJSON(&jsonParam)
+	if err != nil {
+		response.FailWithMessage(err.Error(), c)
+		return
+	}
+	if _, exist := jsonParam["nestIds"]; exist && jsonParam["nestIds"] == nil {
+		response.FailWithMessage(errors.New("参数[nestIds]不能为空").Error(), c)
+		return
+	}
+	if _, exist := jsonParam["status"]; exist && jsonParam["status"] == nil {
+		response.FailWithMessage(errors.New("参数[status]不能为空").Error(), c)
+		return
+	}
+	if _, exist := jsonParam["aerialPhotographyFile"]; exist && jsonParam["aerialPhotographyFile"] == nil {
+		response.FailWithMessage(errors.New("参数[aerialPhotographyFile]不能为空").Error(), c)
+		return
+	}
+	if err, id := ALPhotographyResultService.CreateAerialPhotographyResultZhnc(jsonParam); err != nil {
+		global.GVA_LOG.Error("创建失败!", zap.Error(err))
+		response.FailWithMessage("创建失败", c)
+	} else {
+		c.JSON(http.StatusOK, gin.H{"code": 0, "id": id, "msg": "创建成功"})
 	}
 }
 
@@ -180,13 +218,14 @@ func (ALPhotographyResultApi *AerialPhotographyResultApi) GetAerialPhotographyRe
 // @Success 200 {string} string "{"success":true,"data":{},"msg":"获取成功"}"
 // @Router /ALPhotographyResult/queryAerialPhotographyResult [get]
 func (ALPhotographyResultApi *AerialPhotographyResultApi) QueryAerialPhotographyResult(c *gin.Context) {
-	if modelList, orthoList, err := ALPhotographyResultService.QueryAerialPhotographyResult(c); err != nil {
+	if modelList, orthoList, multiSpectraList, err := ALPhotographyResultService.QueryAerialPhotographyResult(c); err != nil {
 		global.GVA_LOG.Error("查询失败!", zap.Error(err))
 		response.FailWithMessage("查询失败", c)
 	} else {
 		returnObj := make(map[string]interface{})
 		returnObj["modelList"] = modelList
 		returnObj["orthoList"] = orthoList
+		returnObj["multiSpectraList"] = multiSpectraList
 		response.OkWithData(gin.H{"list": returnObj}, c)
 	}
 }

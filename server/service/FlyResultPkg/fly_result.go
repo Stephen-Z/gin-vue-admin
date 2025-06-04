@@ -101,7 +101,7 @@ func (FlyRtService *FlyResultService) NoPageGetFlyResultInfoList(c *gin.Context)
 	}
 	// 创建db
 	db := global.GVA_DB.Model(&FlyResultPkg.FlyResult{})
-	db.Preload("NestExecRecord").Joins(" inner join nest_exec_record on fly_result.execute_id = nest_exec_record.execute_id").Where("nest_exec_record.nest_id in ?", nestIDList)
+	db.Preload("NestExecRecord").Joins(" inner join nest_exec_record on fly_result.execute_id = nest_exec_record.execute_id").Where("locate('.TIF',file_name) = 0").Where("nest_exec_record.nest_id in ?", nestIDList)
 	//var FlyRts []FlyResultPkg.FlyResult
 	FlyRts := make([]map[string]interface{}, 0, 0)
 	if err != nil {

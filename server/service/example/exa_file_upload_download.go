@@ -2,6 +2,7 @@ package example
 
 import (
 	"errors"
+	"fmt"
 	"mime/multipart"
 	"strings"
 
@@ -90,7 +91,28 @@ func (e *FileUploadAndDownloadService) GetFileRecordInfoList(info request.PageIn
 
 func (e *FileUploadAndDownloadService) UploadFile(header *multipart.FileHeader, noSave string) (file example.ExaFileUploadAndDownload, err error) {
 	oss := upload.NewOss()
+	fmt.Println(oss)
 	filePath, key, uploadErr := oss.UploadFile(header)
+	if uploadErr != nil {
+		panic(err)
+	}
+	s := strings.Split(header.Filename, ".")
+	f := example.ExaFileUploadAndDownload{
+		Url:  filePath,
+		Name: header.Filename,
+		Tag:  s[len(s)-1],
+		Key:  key,
+	}
+	if noSave == "0" {
+		return f, e.Upload(f)
+	}
+	return f, nil
+}
+
+func (e *FileUploadAndDownloadService) UploadFileAerialPhoto(header *multipart.FileHeader, noSave string) (file example.ExaFileUploadAndDownload, err error) {
+	oss := upload.NewOss()
+	fmt.Println(oss)
+	filePath, key, uploadErr := oss.UploadFileAerialPhoto(header)
 	if uploadErr != nil {
 		panic(err)
 	}

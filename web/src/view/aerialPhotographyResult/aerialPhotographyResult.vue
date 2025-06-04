@@ -104,6 +104,12 @@
           prop="uploadBy"
           width="120"
         />
+        <el-table-column
+          align="left"
+          label="服务地址"
+          prop="aerialServerAddress"
+          width="100"
+        />
         <el-table-column align="left" label="类型" prop="type" width="120">
           <template #default="scope">
             {{ convertTableValue(scope.row.type, typeList) }}
@@ -214,6 +220,13 @@
             placeholder="请输入"
           />
         </el-form-item>
+         <el-form-item label="服务地址:" prop="aerialServerAddress">
+          <el-input
+            v-model="formData.aerialServerAddress"
+            :clearable="true"
+            placeholder="请输入"
+          />
+        </el-form-item>
         <el-form-item label="类型:" prop="type">
           <el-select
             v-model="formData.type"
@@ -230,7 +243,7 @@
           </el-select>
         </el-form-item>
         <el-form-item label="航拍文件:" prop="aerialPhotographyFile">
-          <SelectFile v-model="formData.aerialPhotographyFile" />
+          <SelectFileAerialResult v-model="formData.aerialPhotographyFile" />
         </el-form-item>
         <el-form-item label="状态:" prop="status" style="display: none">
           <el-input
@@ -307,7 +320,7 @@ import {
 } from "@/api/aerialPhotographyResult";
 import { getUrl } from "@/utils/image";
 // 文件选择组件
-import SelectFile from "@/components/selectFile/selectFile.vue";
+import SelectFileAerialResult from "@/components/selectFile/selectFileAerialResult.vue";
 
 // 全量引入格式化工具 请按需保留
 import {
@@ -330,6 +343,7 @@ const formData = ref({
   aerialPhotographyFile: [],
   loadOrNot: 0,
   nestIds: "",
+  aerialServerAddress: "",
 });
 const statusList = [
   { value: 0, label: "上传中" },
@@ -340,6 +354,7 @@ const statusList = [
 const typeList = [
   { value: 0, label: "高清正射" },
   { value: 1, label: "三维模型" },
+  { value: 2, label: "多光谱" },
 ];
 const loadOrNotList = [
   { value: 0, label: "加载" },

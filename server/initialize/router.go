@@ -21,7 +21,8 @@ func Routers() *gin.Engine {
 
 	Router.StaticFS(global.GVA_CONFIG.Local.StorePath, http.Dir(global.GVA_CONFIG.Local.StorePath))
 
-	Router.Use(middleware.Cors())
+	//Router.Use(middleware.Cors())
+	Router.Use(middleware.CorsByRules())
 
 	docs.SwaggerInfo.BasePath = global.GVA_CONFIG.System.RouterPrefix
 	Router.GET(global.GVA_CONFIG.System.RouterPrefix+"/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
@@ -106,6 +107,18 @@ func Routers() *gin.Engine {
 	{
 		ProblemRecordPkgRouter := router.RouterGroupApp.ProblemRecordPkg
 		ProblemRecordPkgRouter.InitProblemRecordRouter(PrivateGroup)
+	}
+	{
+		MultiSpectraAnalysisPkgRouter := router.RouterGroupApp.MultiSpectraAnalysisPkg
+		MultiSpectraAnalysisPkgRouter.InitMultiSpectraAnalysisRouter(PrivateGroup)
+	}
+	{
+		MultiSpectraPlateRouter := router.RouterGroupApp.MultiSpectraPlate
+		MultiSpectraPlateRouter.InitMultiSpectraPlateRouter(PrivateGroup)
+	}
+	{
+		MultiSpectraTypeRouter := router.RouterGroupApp.MultiSpectraType
+		MultiSpectraTypeRouter.InitMultiSpectraTypeRouter(PrivateGroup)
 	}
 
 	global.GVA_LOG.Info("router register success")
