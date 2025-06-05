@@ -160,9 +160,9 @@ func (NtAirlineService *NestAirlineService) NoPageGetNestAirlineInfoList(info Ne
 	if info.Name != "" {
 		db.Where("name like ?", "%"+info.Name+"%")
 	}
-	if info.Type >= 0 {
-		db.Where("type = ?", info.Type)
-	}
+	//if info.Type >= 0 {
+	//	db.Where("type = ?", info.Type)
+	//}
 	if info.NestId != "" {
 		db.Where("nest_id = ?", info.NestId)
 	}
