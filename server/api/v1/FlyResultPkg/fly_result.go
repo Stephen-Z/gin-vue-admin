@@ -1,6 +1,8 @@
 package FlyResultPkg
 
 import (
+	"archive/zip"
+	"bytes"
 	"crypto/md5"
 	"fmt"
 	"github.com/flipped-aurora/gin-vue-admin/server/global"
@@ -13,9 +15,11 @@ import (
 	"github.com/flipped-aurora/gin-vue-admin/server/utils"
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
+	"io"
 	"log"
 	"os"
 	"path"
+	"path/filepath"
 	"strings"
 	"time"
 )
@@ -277,6 +281,7 @@ func (FlyRtApi *FlyResultApi) QueryAirlineRecordFlyResult(c *gin.Context) {
 		panoramaCount := 0
 		imgCount := 0
 		videoCount := 0
+		executeId := ""
 		for _, record := range recordList {
 			if _, exist := airline["exec_record_arr"]; !exist {
 				resArr := make([]map[string]interface{}, 0, 0)
@@ -299,11 +304,15 @@ func (FlyRtApi *FlyResultApi) QueryAirlineRecordFlyResult(c *gin.Context) {
 				if record["video_count"] != nil {
 					videoCount = videoCount + record["video_count"].(int)
 				}
+				if record["execute_id"] != nil {
+					executeId = record["execute_id"].(string)
+				}
 			}
 		}
 		airline["panorama_count"] = panoramaCount
 		airline["img_count"] = imgCount
 		airline["video_count"] = videoCount
+		airline["execute_id"] = executeId
 	}
 	response.OkWithData(gin.H{"airlineList": airlineList, "total": count, "page": pageInfo.Page, "pagesize": pageInfo.PageSize}, c)
 }
@@ -359,6 +368,40 @@ func (FlyRtApi *FlyResultApi) DataResultDownload(c *gin.Context) {
 	}
 }
 
+// DataResultDownload 根据 表 nest_exec_record 的 execute_id 返回所有 关于正射的文件
+func (FlyRtApi *FlyResultApi) DataResultDownloadSource(c *gin.Context) {
+
+	type RequestObj struct {
+		ExecuteId string `json:"execute_id" binding:"required"`
+	}
+	var requestObj RequestObj
+	errShouldBindJSON := c.ShouldBindJSON(&requestObj)
+	if errShouldBindJSON != nil {
+		response.FailWithMessage(errShouldBindJSON.Error(), c)
+	}
+	execRecord, errGetNestExecRecordByExecuteId := NestExecRecordService.GetNestExecRecordByExecuteId(requestObj.ExecuteId)
+	if errGetNestExecRecordByExecuteId != nil {
+		c.JSON(200, map[string]interface{}{"code": -1, "msg": "该条记录不存在"})
+		return
+	}
+	if execRecord.Status == nil || (*execRecord.Status != int(6) && (*execRecord.Status != int(7))) {
+		c.JSON(200, map[string]interface{}{"code": -1, "msg": "该条记录格式不正确"})
+		return
+	}
+
+	filePathString := path.Join(global.GVA_CONFIG.FileServer.FlyRecordPath, requestObj.ExecuteId) // 线上的文件夹
+	//filePathString := path.Join("D:", "图片", "ZHXF-DATA", "flyrecords", requestObj.ExecuteId) // 本地测试的文件夹
+	binary, errCompressFolderToBinary := compressFolderToBinary(filePathString)
+	if errCompressFolderToBinary != nil {
+		c.JSON(200, map[string]interface{}{"code": -1, "msg": errCompressFolderToBinary.Error()})
+		return
+	}
+
+	c.Header("Content-Disposition", "attachment; filename="+requestObj.ExecuteId+".zip")
+	c.Data(200, "application/octet-stream", binary)
+	return
+}
+
 // 每日凌晨定时清除压缩完的作业成果
 func TimeToClearCompressFile() {
 	t := time.NewTimer(SetTime(0, 1, 0))
@@ -388,4 +431,69 @@ func SetTime(hour, min, second int) (d time.Duration) {
 		return
 	}
 	return d + time.Hour*24
+}
+
+// 压缩文件夹 并返回[]byte 格式为.zip
+func compressFolderToBinary(srcDir string) ([]byte, error) {
+	// 使用 bytes.Buffer 来保存 zip 数据
+	buf := new(bytes.Buffer)
+	zipWriter := zip.NewWriter(buf)
+
+	// 遍历源文件夹中的所有文件并添加到 zip
+	err := filepath.Walk(srcDir, func(filePath string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+
+		// 构建 ZIP 中的相对路径
+		relPath, err := filepath.Rel(srcDir, filePath)
+		if err != nil {
+			return err
+		}
+
+		// 创建 header
+		header, err := zip.FileInfoHeader(info)
+		if err != nil {
+			return err
+		}
+
+		header.Name = relPath
+		// 如果是目录，则确保路径以斜杠结尾
+		if info.IsDir() {
+			header.Name += "/"
+		} else {
+			header.Method = zip.Deflate
+		}
+
+		// 创建 writer
+		writer, err := zipWriter.CreateHeader(header)
+		if err != nil {
+			return err
+		}
+
+		// 如果不是目录，则写入文件内容
+		if !info.IsDir() {
+			file, errOpen := os.Open(filePath)
+			if errOpen != nil {
+				return errOpen
+			}
+			defer file.Close()
+			_, errCopy := io.Copy(writer, file)
+			if errCopy != nil {
+				return errCopy
+			}
+		}
+		return nil
+	})
+
+	// 确保关闭 zip.Writer 以完成写入操作
+	if closeErr := zipWriter.Close(); closeErr != nil && err == nil {
+		err = closeErr
+	}
+
+	if err != nil {
+		return nil, err
+	}
+
+	return buf.Bytes(), nil
 }

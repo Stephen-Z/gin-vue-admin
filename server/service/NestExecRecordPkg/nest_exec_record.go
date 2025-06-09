@@ -119,3 +119,8 @@ func (NtERecordService *NestExecRecordService) NoPageGetNestExecRecordInfoList(c
 	err = db.Order("execute_at desc").Where("execute_at <> ''").Find(&NtERecords).Error
 	return NtERecords, err
 }
+
+func (NtERecordService *NestExecRecordService) GetNestExecRecordByExecuteId(executeId string) (NtERecord NestExecRecordPkg.NestExecRecord, err error) {
+	err = global.GVA_DB.Model(&NestExecRecordPkg.NestExecRecord{}).Where("execute_id = ?", executeId).First(&NtERecord).Error
+	return
+}
