@@ -281,7 +281,7 @@ func (FlyRtApi *FlyResultApi) QueryAirlineRecordFlyResult(c *gin.Context) {
 		panoramaCount := 0
 		imgCount := 0
 		videoCount := 0
-		executeId := ""
+		//executeId := ""
 		for _, record := range recordList {
 			if _, exist := airline["exec_record_arr"]; !exist {
 				resArr := make([]map[string]interface{}, 0, 0)
@@ -304,15 +304,15 @@ func (FlyRtApi *FlyResultApi) QueryAirlineRecordFlyResult(c *gin.Context) {
 				if record["video_count"] != nil {
 					videoCount = videoCount + record["video_count"].(int)
 				}
-				if record["execute_id"] != nil {
-					executeId = record["execute_id"].(string)
-				}
+				//if record["execute_id"] != nil {
+				//	executeId = record["execute_id"].(string)
+				//}
 			}
 		}
 		airline["panorama_count"] = panoramaCount
 		airline["img_count"] = imgCount
 		airline["video_count"] = videoCount
-		airline["execute_id"] = executeId
+		//airline["execute_id"] = executeId
 	}
 	response.OkWithData(gin.H{"airlineList": airlineList, "total": count, "page": pageInfo.Page, "pagesize": pageInfo.PageSize}, c)
 }

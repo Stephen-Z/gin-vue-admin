@@ -115,6 +115,7 @@ func (NtERecordService *NestExecRecordService) NoPageGetNestExecRecordInfoList(c
 	// 创建db
 	db := global.GVA_DB.Model(&NestExecRecordPkg.NestExecRecord{})
 	db.Where("nest_id in ?", nestIDList)
+	db.Where("status in (6,7)")
 	NtERecords := make([]map[string]interface{}, 0, 0)
 	err = db.Order("execute_at desc").Where("execute_at <> ''").Find(&NtERecords).Error
 	return NtERecords, err
