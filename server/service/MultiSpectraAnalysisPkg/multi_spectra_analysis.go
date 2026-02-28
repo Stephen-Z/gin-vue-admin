@@ -63,6 +63,8 @@ func (MtSpectraAlyService *MultiSpectraAnalysisService) GetMultiSpectraAnalysisI
 	db.Where(" deleted_at is null")
 	if ids != "" {
 		db.Where("id in (" + ids + ")")
+	} else {
+		return RtMtSpectraAlys, 0, nil
 	}
 
 	// 如果有条件搜索 下方会自动创建搜索语句
