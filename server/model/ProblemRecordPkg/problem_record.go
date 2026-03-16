@@ -15,7 +15,7 @@ type ProblemRecord struct {
 	ProblemName   string         `json:"problemName" form:"problemName" gorm:"column:problem_name;comment:;"`
 	ProblemType   string         `json:"problemType" form:"problemType" gorm:"column:problem_type;comment:;"`
 	ProblemSource string         `json:"problemSource" form:"problemSource" gorm:"column:problem_source;comment:;"`
-	ProblemDesc   string         `json:"problemDesc" form:"problemDesc" gorm:"column:problem_desc;comment:;"`
+	ProblemDesc   string         `json:"problemDesc" form:"problemDesc" gorm:"type:longtext;column:problem_desc;comment:;"`
 	PersonCharge  string         `json:"personCharge" form:"personCharge" gorm:"column:person_charge;comment:;"`
 	ProblemImage  datatypes.JSON `json:"problemImage" form:"problemImage" gorm:"type:longtext;column:problem_image;comment:;"`
 	HandMeasurce  string         `json:"handMeasurce" form:"handMeasurce" gorm:"column:hand_measurce;comment:;"`
